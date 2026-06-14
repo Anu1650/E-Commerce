@@ -60,7 +60,9 @@ const emailTransporter = nodemailer.createTransport({
         user: process.env.EMAIL_USER || 'aniketigade@gmail.com',
         pass: process.env.EMAIL_PASS || 'uzyfmzytucafqnaa'
     },
-    tls: { rejectUnauthorized: false }
+    tls: { rejectUnauthorized: false },
+    logger: true,
+    debug: true
 });
 
 async function sendOrderConfirmationEmail(email, orderId, items, total) {
