@@ -2,12 +2,18 @@ const express = require('express');
 const cors = require('cors');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
-const nodemailer = require('nodemailer');
 const multer = require('multer');
 const fs = require('fs');
 const path = require('path');
 const initSqlJs = require('sql.js');
+const sgMail = require('@sendgrid/mail');
+const { Resend } = require('resend');
 require('dotenv').config();
+
+if (process.env.SENDGRID_API_KEY) {
+    sgMail.setApiKey(process.env.SENDGRID_API_KEY);
+}
+const resend = process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KEY) : null;
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -52,63 +58,99 @@ function dbExec(sql) {
     saveDb();
 }
 
-const emailTransporter = nodemailer.createTransport({
-    host: 'smtp.gmail.com',
-    port: 587,
-    secure: false,
-    auth: {
-        user: process.env.EMAIL_USER || 'aniketigade@gmail.com',
-        pass: process.env.EMAIL_PASS || 'uzyfmzytucafqnaa'
-    },
-    tls: { rejectUnauthorized: false },
-    logger: true,
-    debug: true
-});
+const fromEmail = {
+    name: 'Tech Shop',
+    email: process.env.EMAIL_USER || 'aniketigade@gmail.com'
+};
 
-async function sendOrderConfirmationEmail(email, orderId, items, total) {
-    const itemList = items.map(i => `<li>${i.product_name} x${i.quantity} - ₹${i.product_price * i.quantity}</li>`).join('');
+async function sendEmail({ to, subject, html }) {
+    console.log('📧 Sending email to ' + to + ': ' + subject);
+    if (resend) {
+        try {
+            const { data, error } = await resend.emails.send({
+                from: 'Tech Shop <onboarding@resend.dev>',
+                to, subject, html
+            });
+            if (error) {
+                console.error('❌ Resend error:', error.message);
+            } else {
+                console.log('✅ Email sent via Resend to ' + to);
+                return;
+            }
+        } catch (e) {
+            console.error('❌ Resend error:', e.message);
+        }
+    }
+    if (process.env.SENDGRID_API_KEY) {
+        try {
+            await sgMail.send({ to, from: fromEmail.email, subject, html });
+            console.log('✅ Email sent via SendGrid to ' + to);
+            return;
+        } catch (e) {
+            console.error('❌ SendGrid error:', e.message);
+        }
+    }
+    const nodemailer = require('nodemailer');
+    const transporter = nodemailer.createTransport({
+        service: 'gmail',
+        auth: {
+            user: process.env.EMAIL_USER || 'aniketigade@gmail.com',
+            pass: process.env.EMAIL_PASS || 'uzyfmzytucafqnaa'
+        }
+    });
     try {
-        await emailTransporter.sendMail({
-            from: 'Tech Shop <aniketigade@gmail.com>',
-            to: email,
-            subject: `Order Confirmed - ${orderId} | Tech Shop`,
-            html: `<div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;">
-                <h2 style="color:#2874f0;">✅ Order Confirmed!</h2>
-                <p>Dear Customer,</p>
-                <p>Your order <strong>${orderId}</strong> has been confirmed successfully.</p>
-                <h3>Order Details:</h3>
-                <ul>${itemList}</ul>
-                <p><strong>Total: ₹${total}</strong></p>
-                <p>📦 Your order is being processed and will be shipped soon!</p>
-                <p style="margin-top:20px;color:#6b7280;">Thank you for shopping with Tech Shop!</p>
-            </div>`
-        });
-        console.log('Order confirmation email sent to:', email);
+        await transporter.sendMail({ from: 'Tech Shop <' + fromEmail.email + '>', to, subject, html });
+        console.log('✅ Email sent via Gmail to ' + to);
     } catch (e) {
-        console.log('Email error:', e.message);
+        console.error('❌ Gmail error:', e.message);
+        console.log('⚠️ OTP available in server logs above');
     }
 }
 
+function mailHtml(heading, code, color) {
+    return `<div style="font-family:Arial,sans-serif;max-width:500px;margin:0 auto;padding:20px;">
+        <div style="background:linear-gradient(135deg,${color},#0a46b3);color:white;padding:20px;text-align:center;border-radius:10px 10px 0 0;"><h1>Tech Shop</h1></div>
+        <div style="background:#f9f9f9;padding:30px;border-radius:0 0 10px 10px;text-align:center;">
+            <h2>${heading}</h2>
+            <p>Your verification code is:</p>
+            <div style="background:${color};color:white;font-size:32px;font-weight:bold;padding:15px 30px;border-radius:8px;display:inline-block;letter-spacing:5px;margin:20px 0;">${code}</div>
+            <p style="color:#666;font-size:14px;">This code expires in 10 minutes.</p>
+        </div>
+    </div>`;
+}
+
+async function sendOrderConfirmationEmail(email, orderId, items, total) {
+    const itemList = items.map(i => `<li>${i.product_name} x${i.quantity} - ₹${i.product_price * i.quantity}</li>`).join('');
+    await sendEmail({
+        to: email,
+        subject: 'Order Confirmed - ' + orderId + ' | Tech Shop',
+        html: `<div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;">
+            <h2 style="color:#2874f0;">✅ Order Confirmed!</h2>
+            <p>Dear Customer,</p>
+            <p>Your order <strong>${orderId}</strong> has been confirmed.</p>
+            <h3>Order Details:</h3>
+            <ul>${itemList}</ul>
+            <p><strong>Total: ₹${total}</strong></p>
+            <p>📦 Your order is being processed.</p>
+            <p style="margin-top:20px;color:#6b7280;">Thank you for shopping with Tech Shop!</p>
+        </div>`
+    });
+}
+
 async function sendOrderCancellationEmail(email, orderId, reason, refundAmount) {
-    try {
-        await emailTransporter.sendMail({
-            from: 'Tech Shop <aniketigade@gmail.com>',
-            to: email,
-            subject: `Order Cancelled - ${orderId} | Tech Shop`,
-            html: `<div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;">
-                <h2 style="color:#dc2626;">❌ Order Cancelled</h2>
-                <p>Dear Customer,</p>
-                <p>Your order <strong>${orderId}</strong> has been cancelled.</p>
-                <p><strong>Refund Amount: ₹${refundAmount}</strong></p>
-                <p>Reason: ${reason || 'Not specified'}</p>
-                <p>💰 Refund will be credited within 5-7 business days.</p>
-                <p style="margin-top:20px;color:#6b7280;">Thank you for shopping with Tech Shop!</p>
-            </div>`
-        });
-        console.log('Cancellation email sent to:', email);
-    } catch (e) {
-        console.log('Email error:', e.message);
-    }
+    await sendEmail({
+        to: email,
+        subject: 'Order Cancelled - ' + orderId + ' | Tech Shop',
+        html: `<div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;">
+            <h2 style="color:#dc2626;">❌ Order Cancelled</h2>
+            <p>Dear Customer,</p>
+            <p>Order <strong>${orderId}</strong> has been cancelled.</p>
+            <p><strong>Refund Amount: ₹${refundAmount}</strong></p>
+            <p>Reason: ${reason || 'Not specified'}</p>
+            <p>💰 Refund within 5-7 business days.</p>
+            <p style="margin-top:20px;color:#6b7280;">Thank you for shopping with Tech Shop!</p>
+        </div>`
+    });
 }
 
 app.use(cors());
@@ -340,20 +382,7 @@ app.post('/api/auth/signup', async (req, res) => {
         console.log('\n📧 OTP for ' + email + ' (signup): ' + otp + '\n');
         dbRun('INSERT INTO otp_verifications (email, otp, type, expires_at) VALUES (?, ?, ?, ?)',
             [email, otp, 'signup', new Date(Date.now() + 10 * 60000).toISOString()]);
-        emailTransporter.sendMail({
-            from: 'Tech Shop <aniketigade@gmail.com>',
-            to: email,
-            subject: 'Tech Shop - Verify Your Account',
-            html: `<div style="font-family:Arial,sans-serif;max-width:500px;margin:0 auto;padding:20px;">
-                <div style="background:linear-gradient(135deg,#2874f0,#0a46b3);color:white;padding:20px;text-align:center;border-radius:10px 10px 0 0;"><h1>Tech Shop</h1></div>
-                <div style="background:#f9f9f9;padding:30px;border-radius:0 0 10px 10px;text-align:center;">
-                    <h2>Verify Your Email</h2>
-                    <p>Your verification code is:</p>
-                    <div style="background:#2874f0;color:white;font-size:32px;font-weight:bold;padding:15px 30px;border-radius:8px;display:inline-block;letter-spacing:5px;margin:20px 0;">${otp}</div>
-                    <p style="color:#666;font-size:14px;">This code expires in 10 minutes.</p>
-                </div>
-            </div>`
-        }).then(() => console.log('📧 Email sent to ' + email)).catch(e => console.error('📧 Email send failed:', e.message));
+        sendEmail({ to: email, subject: 'Tech Shop - Verify Your Account', html: mailHtml('Verify Your Email', otp, '#2874f0') });
         const tempToken = jwt.sign({ email, type: 'signup' }, JWT_SECRET, { expiresIn: '10m' });
         res.json({ success: true, message: 'Account created. Enter OTP to verify.', email, token: tempToken });
     } catch (error) {
@@ -374,20 +403,7 @@ app.post('/api/auth/login', async (req, res) => {
         console.log('\n📧 OTP for ' + email + ' (login): ' + otp + '\n');
         dbRun('INSERT INTO otp_verifications (email, otp, type, expires_at) VALUES (?, ?, ?, ?)',
             [email, otp, 'login', new Date(Date.now() + 10 * 60000).toISOString()]);
-        emailTransporter.sendMail({
-            from: 'Tech Shop <aniketigade@gmail.com>',
-            to: email,
-            subject: 'Tech Shop - Login Verification',
-            html: `<div style="font-family:Arial,sans-serif;max-width:500px;margin:0 auto;padding:20px;">
-                <div style="background:linear-gradient(135deg,#2874f0,#0a46b3);color:white;padding:20px;text-align:center;border-radius:10px 10px 0 0;"><h1>Tech Shop</h1></div>
-                <div style="background:#f9f9f9;padding:30px;border-radius:0 0 10px 10px;text-align:center;">
-                    <h2>Login Verification</h2>
-                    <p>Your verification code is:</p>
-                    <div style="background:#16a34a;color:white;font-size:32px;font-weight:bold;padding:15px 30px;border-radius:8px;display:inline-block;letter-spacing:5px;margin:20px 0;">${otp}</div>
-                    <p style="color:#666;font-size:14px;">This code expires in 10 minutes.</p>
-                </div>
-            </div>`
-        }).then(() => console.log('📧 Email sent to ' + email)).catch(e => console.error('📧 Email send failed:', e.message));
+        sendEmail({ to: email, subject: 'Tech Shop - Login Verification', html: mailHtml('Login Verification', otp, '#16a34a') });
         const tempToken = jwt.sign({ email, type: 'login' }, JWT_SECRET, { expiresIn: '10m' });
         res.json({ success: true, message: 'OTP sent to email', email, token: tempToken });
     } catch (error) {
