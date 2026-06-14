@@ -1,0 +1,451 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Product Details | Tech Shop</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Inter', sans-serif; background: #f5f7fb; color: #1f2937; }
+        
+        .container { max-width: 1200px; margin: 0 auto; padding: 20px; }
+        
+        .back-btn { display: inline-flex; align-items: center; gap: 8px; color: #2874f0; font-weight: 500; cursor: pointer; margin-bottom: 20px; }
+        .back-btn:hover { text-decoration: underline; }
+        
+        .product-detail { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; background: white; padding: 30px; border-radius: 16px; }
+        
+        @media (max-width: 768px) {
+            .product-detail { grid-template-columns: 1fr; gap: 20px; }
+        }
+        
+        .product-images { position: relative; }
+        .main-image { width: 100%; height: 400px; object-fit: contain; border-radius: 12px; background: #f8fafc; }
+        .thumbnail-row { display: flex; gap: 12px; margin-top: 12px; }
+        .thumbnail { width: 80px; height: 80px; object-fit: contain; border-radius: 8px; cursor: pointer; border: 2px solid #e2e8f0; transition: 0.2s; }
+        .thumbnail:hover, .thumbnail.active { border-color: #2874f0; }
+        
+        .product-info { padding: 10px; }
+        .product-brand { color: #2874f0; font-size: 0.9rem; font-weight: 600; margin-bottom: 8px; }
+        .product-title { font-size: 1.8rem; font-weight: 700; margin-bottom: 12px; line-height: 1.3; }
+        .product-rating { display: flex; align-items: center; gap: 8px; margin-bottom: 16px; }
+        .rating-badge { background: #16a34a; color: white; padding: 4px 10px; border-radius: 20px; font-size: 0.85rem; font-weight: 600; }
+        .reviews-count { color: #6b7280; font-size: 0.9rem; }
+        
+        .price-section { margin: 20px 0; padding: 20px; background: #f8fafc; border-radius: 12px; }
+        .price-row { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
+        .current-price { font-size: 2rem; font-weight: 800; color: #059669; }
+        .original-price { text-decoration: line-through; color: #9ca3af; font-size: 1.2rem; }
+        .discount-badge { background: #fef3c7; color: #b45309; padding: 4px 10px; border-radius: 6px; font-weight: 600; font-size: 0.9rem; }
+        
+        .variant-section { margin: 24px 0; }
+        .variant-title { font-weight: 600; margin-bottom: 12px; display: flex; align-items: center; gap: 8px; }
+        .variant-title i { color: #2874f0; }
+        
+        .color-options, .storage-options { display: flex; gap: 12px; flex-wrap: wrap; }
+        
+        .color-btn { padding: 10px 20px; border: 2px solid #e2e8f0; border-radius: 8px; background: white; cursor: pointer; font-weight: 500; transition: 0.2s; }
+        .color-btn:hover { border-color: #2874f0; }
+        .color-btn.selected { border-color: #2874f0; background: #eff6ff; color: #2874f0; }
+        
+        .storage-btn { padding: 10px 20px; border: 2px solid #e2e8f0; border-radius: 8px; background: white; cursor: pointer; font-weight: 500; transition: 0.2s; min-width: 80px; text-align: center; }
+        .storage-btn:hover { border-color: #2874f0; }
+        .storage-btn.selected { border-color: #2874f0; background: #2874f0; color: white; }
+        
+        .specs-section { margin: 24px 0; }
+        .specs-card { background: #f8fafc; border-radius: 12px; padding: 20px; }
+        .specs-title { font-weight: 700; font-size: 1.1rem; margin-bottom: 16px; display: flex; align-items: center; gap: 8px; }
+        .specs-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+        .spec-item { display: flex; gap: 8px; }
+        .spec-label { color: #6b7280; min-width: 100px; }
+        .spec-value { font-weight: 600; }
+        
+        .description { margin: 24px 0; }
+        .description-title { font-weight: 700; font-size: 1.1rem; margin-bottom: 12px; }
+        .description-text { color: #4b5563; line-height: 1.6; }
+        
+        .emi-section { margin: 24px 0; padding: 20px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 12px; color: white; }
+        .emi-title { font-weight: 700; font-size: 1.1rem; margin-bottom: 12px; display: flex; align-items: center; gap: 8px; }
+        .emi-calculator { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+        .emi-amount { font-size: 1.5rem; font-weight: 800; }
+        .emi-note { font-size: 0.85rem; opacity: 0.9; }
+        
+        .action-buttons { display: flex; gap: 16px; margin-top: 24px; flex-wrap: wrap; }
+        .btn-add-cart { flex: 1; padding: 16px 24px; background: #ff9f00; color: white; border: none; border-radius: 10px; font-weight: 700; font-size: 1rem; cursor: pointer; transition: 0.2s; display: flex; align-items: center; justify-content: center; gap: 10px; }
+        .btn-add-cart:hover { background: #e68a00; transform: scale(0.98); }
+        
+        .btn-buy-now { flex: 1; padding: 16px 24px; background: #2874f0; color: white; border: none; border-radius: 10px; font-weight: 700; font-size: 1rem; cursor: pointer; transition: 0.2s; display: flex; align-items: center; justify-content: center; gap: 10px; }
+        .btn-buy-now:hover { background: #1a5cd8; transform: scale(0.98); }
+        
+        .btn-wishlist { padding: 16px 24px; background: #f1f5f9; color: #ef4444; border: 1px solid #e2e8f0; border-radius: 10px; font-weight: 600; cursor: pointer; transition: 0.2s; }
+        .btn-wishlist:hover { background: #fee2e2; }
+        
+        .toast { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%); background: #1e293b; color: white; padding: 12px 24px; border-radius: 50px; font-size: 0.9rem; z-index: 1100; opacity: 0; visibility: hidden; transition: 0.2s; white-space: nowrap; }
+        .toast.show { opacity: 1; visibility: visible; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="back-btn" onclick="window.history.back()">
+        <i class="fas fa-arrow-left"></i> Back to Shop
+    </div>
+    
+    <div class="product-detail">
+        <div class="product-images">
+            <img src="" id="mainImage" class="main-image" onerror="this.src='https://placehold.co/400x400/2874f0/white?text=Product'">
+            <div class="thumbnail-row" id="thumbnailRow"></div>
+        </div>
+        
+        <div class="product-info">
+            <div class="product-brand" id="productBrand"></div>
+            <div class="product-title" id="productTitle"></div>
+            <div class="product-rating">
+                <span class="rating-badge" id="productRating"></span>
+                <span class="reviews-count" id="reviewsCount"></span>
+            </div>
+            
+            <div class="price-section">
+                <div class="price-row">
+                    <span class="current-price" id="currentPrice"></span>
+                    <span class="original-price" id="originalPrice"></span>
+                    <span class="discount-badge" id="discountBadge"></span>
+                </div>
+                <p style="color:#6b7280;font-size:0.85rem;margin-top:8px;">Inclusive of all taxes</p>
+            </div>
+            
+            <div class="variant-section" id="colorSection">
+                <div class="variant-title"><i class="fas fa-palette"></i> Available Colors</div>
+                <div class="color-options" id="colorOptions"></div>
+            </div>
+            
+            <div class="variant-section" id="storageSection">
+                <div class="variant-title"><i class="fas fa-memory"></i> Storage Options</div>
+                <div class="storage-options" id="storageOptions"></div>
+            </div>
+            
+            <div class="specs-section">
+                <div class="specs-card">
+                    <div class="specs-title"><i class="fas fa-cog"></i> Specifications</div>
+                    <div class="specs-grid" id="specsGrid"></div>
+                </div>
+            </div>
+            
+            <div class="description">
+                <div class="description-title"><i class="fas fa-info-circle"></i> Description</div>
+                <p class="description-text" id="productDescription"></p>
+            </div>
+            
+            <div class="emi-section">
+                <div class="emi-title"><i class="fas fa-credit-card"></i> Easy EMI Options</div>
+                <div class="emi-calculator">
+                    <span class="emi-amount" id="emiAmount">₹0</span>
+                    <span class="emi-note">/month for 6 months | Starting from ₹0 interest</span>
+                </div>
+                <p style="font-size:0.8rem;margin-top:8px;opacity:0.9;">* EMI calculated for selected variant price</p>
+            </div>
+            
+            <div class="action-buttons">
+                <button class="btn-wishlist" id="wishlistBtn" onclick="addToWishlist()">
+                    <i class="fas fa-heart"></i> Wishlist
+                </button>
+                <button class="btn-add-cart" id="addCartBtn" onclick="addToCart()">
+                    <i class="fas fa-cart-plus"></i> Add to Cart
+                </button>
+                <button class="btn-buy-now" id="buyNowBtn" onclick="buyNow()">
+                    <i class="fas fa-bolt"></i> Buy Now
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="toast" id="toastMsg"></div>
+
+<script>
+let productData = {};
+let selectedProduct = null;
+let selectedColor = '';
+let selectedStorage = '';
+let basePrice = 0;
+let variantPrices = {};
+
+function showToast(message) {
+    const toast = document.getElementById('toastMsg');
+    toast.textContent = message;
+    toast.classList.add('show');
+    setTimeout(() => toast.classList.remove('show'), 2500);
+}
+
+async function loadProduct() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const productId = parseInt(urlParams.get('id'));
+    const category = urlParams.get('category');
+    
+    if (!productId || !category) {
+        showToast('Product not found');
+        window.location.href = 'index.html';
+        return;
+    }
+    
+    try {
+        const response = await fetch('/data/products.json?t=' + Date.now());
+        const data = await response.json();
+        productData = data;
+        
+        const products = data[category] || [];
+        selectedProduct = products.find(p => p.id === productId);
+        
+        if (!selectedProduct) {
+            showToast('Product not found');
+            window.location.href = 'index.html';
+            return;
+        }
+        
+        renderProduct();
+    } catch (error) {
+        console.error('Error loading product:', error);
+        showToast('Error loading product');
+    }
+}
+
+function getVariantPrice(color, storage) {
+    const key = `${color || 'default'}_${storage || 'default'}`;
+    return variantPrices[key] || basePrice;
+}
+
+function renderProduct() {
+    const p = selectedProduct;
+    
+    document.title = p.name + ' | Tech Shop';
+    document.getElementById('productBrand').textContent = p.brand || '';
+    document.getElementById('productTitle').textContent = p.name;
+    document.getElementById('productRating').textContent = p.rating + ' ★';
+    document.getElementById('reviewsCount').textContent = `(${p.reviews.toLocaleString()} reviews)`;
+    document.getElementById('productDescription').textContent = p.description || 'No description available.';
+    
+    basePrice = p.price;
+    variantPrices = p.variations || {};
+    updatePrice();
+    
+    const mainImg = document.getElementById('mainImage');
+    if (p.images && p.images.length > 0) {
+        mainImg.src = `images/${p.category}/${p.images[0]}`;
+        const thumbRow = document.getElementById('thumbnailRow');
+        thumbRow.innerHTML = p.images.map((img, i) => `
+            <img src="images/${p.category}/${img}" class="thumbnail ${i === 0 ? 'active' : ''}" 
+                 onclick="changeImage(this, ${i})" onerror="this.src='https://placehold.co/80x80/2874f0/white?text=?'">
+        `).join('');
+    }
+    
+    renderColors();
+    renderStorage();
+    renderSpecs();
+    calculateEMI();
+}
+
+function changeImage(thumb, index) {
+    document.getElementById('mainImage').src = thumb.src;
+    document.querySelectorAll('.thumbnail').forEach(t => t.classList.remove('active'));
+    thumb.classList.add('active');
+}
+
+function renderColors() {
+    const colors = selectedProduct.colors;
+    const colorDiv = document.getElementById('colorSection');
+    const colorOptions = document.getElementById('colorOptions');
+    
+    if (!colors || (typeof colors === 'string' && !colors.trim())) {
+        colorDiv.style.display = 'none';
+        return;
+    }
+    
+    colorDiv.style.display = 'block';
+    const colorList = typeof colors === 'string' ? colors.split(',').map(c => c.trim()) : colors;
+    
+    selectedColor = colorList[0];
+    selectColor(null, selectedColor);
+    
+    colorOptions.innerHTML = colorList.map(color => `
+        <button class="color-btn" onclick="selectColor(this, '${color}')">
+            ${color}
+        </button>
+    `).join('');
+    
+    document.querySelectorAll('.color-btn')[0]?.classList.add('selected');
+}
+
+function selectColor(btn, color) {
+    if (btn) {
+        document.querySelectorAll('.color-btn').forEach(b => b.classList.remove('selected'));
+        btn.classList.add('selected');
+    }
+    selectedColor = color;
+    updatePriceForVariant();
+}
+
+function renderStorage() {
+    const storage = selectedProduct.storage;
+    const storageDiv = document.getElementById('storageSection');
+    const storageOptions = document.getElementById('storageOptions');
+    
+    if (!storage || (typeof storage === 'string' && !storage.trim())) {
+        storageDiv.style.display = 'none';
+        return;
+    }
+    
+    storageDiv.style.display = 'block';
+    const storageList = typeof storage === 'string' ? storage.split(',').map(s => s.trim()) : storage;
+    
+    selectedStorage = storageList[0];
+    selectStorage(null, selectedStorage);
+    
+    storageOptions.innerHTML = storageList.map(st => `
+        <button class="storage-btn" onclick="selectStorage(this, '${st}')">
+            ${st}
+        </button>
+    `).join('');
+    
+    document.querySelectorAll('.storage-btn')[0]?.classList.add('selected');
+}
+
+function selectStorage(btn, storage) {
+    if (btn) {
+        document.querySelectorAll('.storage-btn').forEach(b => b.classList.remove('selected'));
+        btn.classList.add('selected');
+    }
+    selectedStorage = storage;
+    updatePriceForVariant();
+    calculateEMI();
+}
+
+function updatePriceForVariant() {
+    const colorKey = selectedColor || 'default';
+    const storageKey = selectedStorage || 'default';
+    const key1 = `${colorKey}_${storageKey}`;
+    const key2 = `default_${storageKey}`;
+    const key3 = `${colorKey}_default`;
+    
+    if (variantPrices[key1]) {
+        basePrice = variantPrices[key1];
+    } else if (selectedStorage && variantPrices[key2]) {
+        basePrice = variantPrices[key2];
+    } else if (selectedColor && variantPrices[key3]) {
+        basePrice = variantPrices[key3];
+    } else if (selectedStorage && variantPrices[selectedStorage]) {
+        basePrice = variantPrices[selectedStorage];
+    } else {
+        basePrice = selectedProduct.price;
+    }
+    
+    updatePrice();
+    calculateEMI();
+}
+
+function renderSpecs() {
+    const specs = selectedProduct.specs || {};
+    const specsGrid = document.getElementById('specsGrid');
+    
+    const specEntries = Object.entries(specs);
+    if (specEntries.length === 0) {
+        document.querySelector('.specs-section').style.display = 'none';
+        return;
+    }
+    
+    specsGrid.innerHTML = specEntries.map(([key, value]) => `
+        <div class="spec-item">
+            <span class="spec-label">${key.charAt(0).toUpperCase() + key.slice(1)}:</span>
+            <span class="spec-value">${value}</span>
+        </div>
+    `).join('');
+}
+
+function updatePrice() {
+    const p = selectedProduct;
+    document.getElementById('currentPrice').textContent = '₹' + basePrice.toLocaleString();
+    document.getElementById('originalPrice').textContent = '₹' + p.originalPrice.toLocaleString();
+    
+    const discount = Math.round(((p.originalPrice - basePrice) / p.originalPrice) * 100);
+    document.getElementById('discountBadge').textContent = discount + '% off';
+    
+    if (discount > 10) {
+        document.getElementById('discountBadge').style.background = '#16a34a';
+        document.getElementById('discountBadge').style.color = 'white';
+    } else {
+        document.getElementById('discountBadge').style.background = '#fef3c7';
+        document.getElementById('discountBadge').style.color = '#b45309';
+    }
+}
+
+function calculateEMI() {
+    const price = basePrice;
+    const emi6 = Math.round(price / 6);
+    
+    document.getElementById('emiAmount').innerHTML = `
+        <span style="font-size:0.9rem;color:rgba(255,255,255,0.8);">Starting from</span> 
+        ₹${emi6.toLocaleString()}/mo
+    `;
+}
+
+function addToCart() {
+    let cart = JSON.parse(localStorage.getItem('techshop_cart') || '[]');
+    
+    const item = {
+        id: selectedProduct.id,
+        name: selectedProduct.name,
+        image: selectedProduct.image,
+        category: selectedProduct.category,
+        selectedColor,
+        selectedStorage,
+        price: basePrice,
+        quantity: 1
+    };
+    
+    const existing = cart.find(i => i.id === item.id && i.selectedColor === item.selectedColor && i.selectedStorage === item.selectedStorage);
+    if (existing) {
+        existing.quantity += 1;
+    } else {
+        cart.push(item);
+    }
+    
+    localStorage.setItem('techshop_cart', JSON.stringify(cart));
+    showToast('Added to cart!');
+}
+
+function buyNow() {
+    addToCart();
+    setTimeout(() => {
+        window.location.href = 'checkout.html';
+    }, 500);
+}
+
+function addToWishlist() {
+    let wishlist = JSON.parse(localStorage.getItem('techshop_wishlist') || '[]');
+    
+    const exists = wishlist.find(p => p.id === selectedProduct.id);
+    if (exists) {
+        showToast('Already in wishlist!');
+        return;
+    }
+    
+    wishlist.push({
+        ...selectedProduct,
+        selectedColor,
+        selectedStorage,
+        price: basePrice
+    });
+    localStorage.setItem('techshop_wishlist', JSON.stringify(wishlist));
+    showToast('Added to wishlist!');
+}
+
+window.selectColor = selectColor;
+window.selectStorage = selectStorage;
+window.changeImage = changeImage;
+
+loadProduct();
+</script>
+
+</body>
+</html>

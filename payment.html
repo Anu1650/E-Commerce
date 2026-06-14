@@ -1,0 +1,745 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Payment | Tech Shop</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Inter', sans-serif; background: #f5f7fb; color: #1f2937; }
+        
+        .payment-header { background: white; padding: 16px 24px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); display: flex; align-items: center; justify-content: space-between; }
+        .brand-logo { font-size: 1.5rem; font-weight: 800; background: linear-gradient(135deg, #2874f0, #0a46b3); -webkit-background-clip: text; background-clip: text; color: transparent; display: flex; align-items: center; gap: 8px; }
+        .brand-logo i { background: none; color: #ffb81c; }
+        .back-link { color: #2874f0; text-decoration: none; font-weight: 500; }
+        .back-link:hover { text-decoration: underline; }
+        
+        .payment-container { max-width: 1000px; margin: 24px auto; padding: 0 24px; display: grid; grid-template-columns: 1fr 350px; gap: 24px; }
+        
+        .payment-section { background: white; border-radius: 16px; padding: 24px; box-shadow: 0 2px 8px rgba(0,0,0,0.04); }
+        .section-title { font-size: 1.1rem; font-weight: 700; margin-bottom: 16px; display: flex; align-items: center; gap: 8px; }
+        .section-title i { color: #2874f0; }
+        
+        .payment-methods { display: flex; flex-direction: column; gap: 12px; }
+        .method-option { display: flex; align-items: center; gap: 12px; padding: 16px; border: 2px solid #e2e8f0; border-radius: 12px; cursor: pointer; transition: all 0.2s; }
+        .method-option:hover { border-color: #2874f0; }
+        .method-option.active { border-color: #2874f0; background: #f0f5ff; }
+        .method-option input { display: none; }
+        .method-radio { width: 20px; height: 20px; border: 2px solid #cbd5e1; border-radius: 50%; position: relative; }
+        .method-option.active .method-radio { border-color: #2874f0; }
+        .method-option.active .method-radio::after { content: ''; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 10px; height: 10px; background: #2874f0; border-radius: 50%; }
+        .method-icon { width: 40px; height: 40px; background: #f1f5f9; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; }
+        .method-details { flex: 1; }
+        .method-name { font-weight: 600; }
+        .method-desc { font-size: 0.85rem; color: #6b7280; }
+        
+        .payment-forms { margin-top: 24px; }
+        .form-section { display: none; }
+        .form-section.active { display: block; }
+        
+        /* UPI Form */
+        .upi-apps { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 16px; }
+        .upi-app { padding: 16px; border: 2px solid #e2e8f0; border-radius: 12px; text-align: center; cursor: pointer; transition: all 0.2s; }
+        .upi-app:hover { border-color: #2874f0; }
+        .upi-app.active { border-color: #2874f0; background: #f0f5ff; }
+        .upi-app img { width: 40px; height: 40px; margin-bottom: 8px; }
+        .upi-app span { font-size: 0.8rem; font-weight: 500; display: block; }
+        
+        /* UPI QR Code */
+        .qr-section { text-align: center; padding: 20px 0; }
+        .qr-code { background: white; padding: 20px; border-radius: 12px; display: inline-block; margin: 16px 0; }
+        .qr-code canvas { border-radius: 8px; }
+        .upi-address { font-size: 1.1rem; font-weight: 600; color: #2874f0; margin: 12px 0; word-break: break-all; }
+        .qr-instructions { font-size: 0.9rem; color: #6b7280; margin: 16px 0; text-align: left; }
+        .qr-instructions li { margin: 8px 0; }
+        .paid-btn { background: #16a34a; }
+        .input-group label { display: block; font-weight: 500; margin-bottom: 8px; font-size: 0.9rem; }
+        .input-group input { width: 100%; padding: 14px 16px; font-size: 1rem; border: 1.5px solid #e2e8f0; border-radius: 8px; outline: none; transition: all 0.2s; }
+        .input-group input:focus { border-color: #2874f0; }
+        
+        /* Card Form */
+        .card-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+        
+        /* Net Banking */
+        .bank-list { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+        .bank-option { padding: 16px; border: 2px solid #e2e8f0; border-radius: 12px; text-align: center; cursor: pointer; transition: all 0.2s; }
+        .bank-option:hover { border-color: #2874f0; }
+        .bank-option.active { border-color: #2874f0; background: #f0f5ff; }
+        .bank-option i { font-size: 1.5rem; margin-bottom: 8px; color: #2874f0; }
+        .bank-option span { font-size: 0.85rem; font-weight: 500; display: block; }
+        
+        /* Order Summary */
+        .summary-card { background: white; border-radius: 16px; padding: 24px; position: sticky; top: 80px; box-shadow: 0 2px 8px rgba(0,0,0,0.04); }
+        .summary-items { max-height: 300px; overflow-y: auto; margin-bottom: 16px; }
+        .summary-item { display: flex; gap: 12px; padding: 12px 0; border-bottom: 1px solid #f0f0f0; }
+        .summary-item img { width: 60px; height: 60px; object-fit: contain; border-radius: 8px; background: #f8fafc; }
+        .summary-item-details { flex: 1; }
+        .summary-item-name { font-weight: 600; font-size: 0.85rem; margin-bottom: 4px; }
+        .summary-item-price { font-weight: 600; }
+        .summary-item-qty { font-size: 0.8rem; color: #6b7280; }
+        
+        .summary-row { display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 0.95rem; }
+        .summary-row.total { font-size: 1.1rem; font-weight: 700; padding-top: 12px; border-top: 1px solid #e2e8f0; margin-top: 12px; }
+        
+        .pay-btn { background: #2874f0; border: none; width: 100%; padding: 16px; border-radius: 8px; font-weight: 700; font-size: 1.1rem; color: white; cursor: pointer; margin-top: 16px; }
+        
+        .secure-note { display: flex; align-items: center; gap: 8px; justify-content: center; margin-top: 12px; font-size: 0.8rem; color: #6b7280; }
+        
+        .toast-msg { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%) scale(0.9); background: #1f2937; color: white; padding: 12px 24px; border-radius: 8px; font-size: 0.9rem; opacity: 0; transition: 0.2s; pointer-events: none; z-index: 300; }
+        .toast-msg.show { opacity: 1; transform: translateX(-50%) scale(1); }
+        
+        /* Address Section */
+        .address-section { background: white; border-radius: 16px; padding: 24px; margin-bottom: 24px; box-shadow: 0 2px 8px rgba(0,0,0,0.04); }
+        .saved-address { padding: 16px; border: 2px solid #e2e8f0; border-radius: 12px; cursor: pointer; margin-bottom: 12px; }
+        .saved-address:hover { border-color: #2874f0; }
+        .saved-address.active { border-color: #2874f0; background: #f0f5ff; }
+        .saved-address-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+        .saved-address-name { font-weight: 600; }
+        .saved-address-edit { color: #2874f0; font-size: 0.85rem; cursor: pointer; }
+        .saved-address-text { color: #6b7280; font-size: 0.9rem; line-height: 1.5; }
+        .saved-address-label { display: inline-block; background: #e0f2fe; color: #0284c7; padding: 2px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: 600; margin-bottom: 8px; }
+        .new-address-btn { background: none; border: 2px dashed #e2e8f0; width: 100%; padding: 16px; border-radius: 12px; font-weight: 600; color: #6b7280; cursor: pointer; margin-bottom: 16px; }
+        .new-address-btn:hover { border-color: #2874f0; color: #2874f0; }
+        
+        @media (max-width: 860px) {
+            .payment-container { grid-template-columns: 1fr; }
+            .summary-card { order: -1; }
+            .upi-apps, .bank-list, .card-grid { grid-template-columns: repeat(2, 1fr); }
+        }
+        
+        @media (max-width: 520px) { .payment-container { padding: 0 16px; } }
+    </style>
+</head>
+<body>
+
+<header class="payment-header">
+    <div class="brand-logo"><i class="fas fa-store"></i> Tech Shop</div>
+    <a href="index.html" class="back-link"><i class="fas fa-arrow-left"></i> Back to Cart</a>
+</header>
+
+<div class="payment-container">
+    <!-- Address Section -->
+    <div class="address-section" id="addressSection">
+        <div class="section-title"><i class="fas fa-map-marker-alt"></i> Delivery Address</div>
+        <div id="savedAddressList"></div>
+        <div class="new-address-btn" onclick="showNewAddressForm()">
+            <i class="fas fa-plus"></i> Add New Address
+        </div>
+        <div id="newAddressForm" style="display:none;">
+            <div class="input-group">
+                <label>Full Address</label>
+                <textarea id="newAddress" placeholder="House No, Street, Area, Landmark" rows="2" style="width:100%;padding:14px 16px;font-size:1rem;border:1.5px solid #e2e8f0;border-radius:8px;resize:none;"></textarea>
+            </div>
+            <div class="card-grid">
+                <div class="input-group">
+                    <label>City</label>
+                    <input type="text" placeholder="City" id="newCity">
+                </div>
+                <div class="input-group">
+                    <label>State</label>
+                    <input type="text" placeholder="State" id="newState">
+                </div>
+            </div>
+            <div class="input-group">
+                <label>Pincode (6 digits)</label>
+                <input type="text" placeholder="123456" id="newPincode" maxlength="6" style="width:50%;">
+            </div>
+            <button class="pay-btn" style="background:#16a34a;" onclick="saveAndUseAddress()">Save & Use This Address</button>
+        </div>
+    </div>
+    
+    <div class="payment-section">
+        <div class="section-title"><i class="fas fa-credit-card"></i> Choose Payment Method</div>
+        
+        <div class="payment-methods">
+            <label class="method-option active" onclick="selectMethod(this, 'upi')">
+                <input type="radio" name="method" checked>
+                <div class="method-radio"></div>
+                <div class="method-icon" style="background:#e0f2fe;color:#0284c7;"><i class="fab fa-google-pay"></i></div>
+                <div class="method-details"><div class="method-name">UPI / Google Pay / PhonePe</div><div class="method-desc">Instant transfer using UPI</div></div>
+            </label>
+            
+            <label class="method-option" onclick="selectMethod(this, 'card')">
+                <input type="radio" name="method">
+                <div class="method-radio"></div>
+                <div class="method-icon" style="background:#fef3c7;color:#d97706;"><i class="fas fa-credit-card"></i></div>
+                <div class="method-details"><div class="method-name">Credit / Debit Card</div><div class="method-desc">VISA, Mastercard, RuPay</div></div>
+            </label>
+            
+            <label class="method-option" onclick="selectMethod(this, 'netbanking')">
+                <input type="radio" name="method">
+                <div class="method-radio"></div>
+                <div class="method-icon" style="background:#dcfce7;color:#16a34a;"><i class="fas fa-university"></i></div>
+                <div class="method-details"><div class="method-name">Net Banking</div><div class="method-desc">Direct bank transfer</div></div>
+            </label>
+            
+            <label class="method-option" onclick="selectMethod(this, 'wallets')">
+                <input type="radio" name="method">
+                <div class="method-radio"></div>
+                <div class="method-icon" style="background:#f3e8ff;color:#9333ea;"><i class="fas fa-wallet"></i></div>
+                <div class="method-details"><div class="method-name">Wallets</div><div class="method-desc">Paytm, Amazon Pay, FreeCharge</div></div>
+            </label>
+        </div>
+        
+        <div class="payment-forms">
+            <!-- UPI Form -->
+            <div class="form-section active" id="upiForm">
+                <div class="section-title" style="font-size:0.95rem;">Select Payment Option</div>
+                
+                <div class="upi-apps">
+                    <div class="upi-app active" onclick="selectUPI(this, 'gpay')"><i class="fab fa-google-pay" style="font-size:2rem;color:#4285f4;"></i><span>Google Pay</span></div>
+                    <div class="upi-app" onclick="selectUPI(this, 'phonepe')"><i class="fab fa-phonepe" style="font-size:2rem;color:#6739b7;"></i><span>PhonePe</span></div>
+                    <div class="upi-app" onclick="selectUPI(this, 'paytm')"><i class="fab fa-paypal" style="font-size:2rem;color:#00baf2;"></i><span>Paytm</span></div>
+                    <div class="upi-app" onclick="selectUPI(this, 'bhim')"><i class="fas fa-mobile-alt" style="font-size:2rem;color:#ea345a;"></i><span>BHIM</span></div>
+                </div>
+                
+                <h4 style="margin: 20px 0 12px; font-size: 0.95rem;">Or Pay via QR Code</h4>
+                <button class="pay-btn" style="background:#059669;" onclick="showQRCode()">Show UPI QR Code</button>
+                
+                <div id="qrSection" class="qr-section" style="display:none;">
+                    <div class="qr-code" id="qrCode"></div>
+                    <div class="upi-address" id="upiAddress">techshop@upi</div>
+                    <p style="font-size:0.85rem;color:#6b7280;margin-top:8px;">Scan with any UPI app</p>
+                    <ul class="qr-instructions">
+                        <li>Open any UPI app (GPay, PhonePe, Paytm, BHIM)</li>
+                        <li>Scan this QR code</li>
+                        <li>Verify amount ₹<span id="qrAmount">0</span></li>
+                        <li>Complete payment</li>
+                        <li>Click "I've Paid" below</li>
+                    </ul>
+                    <button class="pay-btn paid-btn" onclick="confirmUPIPayment()">I've Paid</button>
+                </div>
+                
+                <div id="upiManualSection">
+                    <div class="input-group">
+                        <label>Or Enter UPI ID (Optional)</label>
+                        <input type="text" placeholder="yourname@upi" id="upiId">
+                    </div>
+                    <button class="pay-btn" onclick="processPayment()">Pay ₹<span id="upiPayBtn">0</span> via UPI</button>
+                </div>
+            </div>
+            
+            <!-- Card Form -->
+            <div class="form-section" id="cardForm">
+                <div class="input-group">
+                    <label>Card Number</label>
+                    <input type="text" placeholder="1234 5678 9012 3456" maxlength="19" id="cardNumber">
+                </div>
+                <div class="input-group">
+                    <label>Cardholder Name</label>
+                    <input type="text" placeholder="Name on card" id="cardName">
+                </div>
+                <div class="card-grid">
+                    <div class="input-group">
+                        <label>Expiry Date</label>
+                        <input type="text" placeholder="MM/YY" maxlength="5" id="cardExpiry">
+                    </div>
+                    <div class="input-group">
+                        <label>CVV</label>
+                        <input type="text" placeholder="123" maxlength="3" id="cardCvv">
+                    </div>
+                </div>
+                <button class="pay-btn" onclick="processPayment()">Pay ₹<span id="cardPayBtn">0</span></button>
+            </div>
+            
+            <!-- Net Banking Form -->
+            <div class="form-section" id="netbankingForm">
+                <div class="section-title" style="font-size:0.95rem;">Select Bank</div>
+                <div class="bank-list">
+                    <div class="bank-option active" onclick="selectBank(this, 'icici')"><i class="fas fa-university"></i><span>ICICI Bank</span></div>
+                    <div class="bank-option" onclick="selectBank(this, 'hdfc')"><i class="fas fa-university"></i><span>HDFC Bank</span></div>
+                    <div class="bank-option" onclick="selectBank(this, 'sbi')"><i class="fas fa-university"></i><span>State Bank</span></div>
+                    <div class="bank-option" onclick="selectBank(this, 'axis')"><i class="fas fa-university"></i><span>Axis Bank</span></div>
+                    <div class="bank-option" onclick="selectBank(this, 'kotak')"><i class="fas fa-university"></i><span>Kotak Bank</span></div>
+                    <div class="bank-option" onclick="selectBank(this, 'yes')"><i class="fas fa-university"></i><span>YES Bank</span></div>
+                </div>
+                <button class="pay-btn" onclick="processPayment()">Pay ₹<span id="nbPayBtn">0</span></button>
+            </div>
+            
+            <!-- Wallets Form -->
+            <div class="form-section" id="walletsForm">
+                <div class="section-title" style="font-size:0.95rem;">Select Wallet</div>
+                <div class="bank-list">
+                    <div class="bank-option active" onclick="selectWallet(this, 'paytm')"><i class="fas fa-wallet"></i><span>Paytm</span></div>
+                    <div class="bank-option" onclick="selectWallet(this, 'amazon')"><i class="fab fa-amazon"></i><span>Amazon Pay</span></div>
+                    <div class="bank-option" onclick="selectWallet(this, 'freecharge')"><i class="fas fa-bolt"></i><span>FreeCharge</span></div>
+                    <div class="bank-option" onclick="selectWallet(this, 'mobikwik')"><i class="fas fa-wallet"></i><span>MobiKwik</span></div>
+                </div>
+                <button class="pay-btn" onclick="processPayment()">Pay ₹<span id="walletPayBtn">0</span></button>
+            </div>
+        </div>
+    </div>
+    
+    <div class="summary-section">
+        <div class="summary-card">
+            <div class="section-title"><i class="fas fa-shopping-bag"></i> Order Summary</div>
+            <div class="summary-items" id="summaryItems"></div>
+            <div class="summary-row"><span>Subtotal</span><span id="summarySubtotal">₹0</span></div>
+            <div class="summary-row"><span>Discount</span><span style="color:#16a34a;" id="summaryDiscount">-₹0</span></div>
+            <div class="summary-row"><span>Shipping</span><span>Free</span></div>
+            <div class="summary-row total"><span>Total</span><span id="summaryTotal">₹0</span></div>
+            
+            <button class="pay-btn" id="mainPayBtn">Pay ₹<span id="mainPayAmount">0</span></button>
+            <div class="secure-note"><i class="fas fa-lock"></i> 100% Secure Payment</div>
+        </div>
+    </div>
+</div>
+
+<div id="toastMsg" class="toast-msg">Processing...</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script src="js/products.js"></script>
+<script>
+    let cart = [];
+    let selectedMethod = 'upi';
+    let userAddress = '';
+    let userCity = '';
+    let userState = '';
+    let userPincode = '';
+    let selectedAddress = null;
+    
+    document.addEventListener('DOMContentLoaded', function() {
+        loadCart();
+        loadUserAddress();
+        renderSummary();
+        updatePayButtons();
+    });
+    
+    function loadUserAddress() {
+        const token = localStorage.getItem('techshop_token');
+        if (!token) {
+            document.getElementById('savedAddressList').innerHTML = '<p style="color:#6b7280;text-align:center;padding:16px;">Please login to view saved address</p>';
+            return;
+        }
+        
+        fetch('/api/user', {
+            headers: { 'Authorization': 'Bearer ' + token }
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.user) {
+                userAddress = data.user.address || '';
+                userCity = data.user.city || '';
+                userState = data.user.state || '';
+                userPincode = data.user.pincode || '';
+                
+                renderSavedAddresses();
+            }
+        })
+        .catch(err => console.error('Error:', err));
+    }
+    
+    function renderSavedAddresses() {
+        const container = document.getElementById('savedAddressList');
+        
+        if (!userAddress || !userPincode) {
+            container.innerHTML = '<p style="color:#6b7280;text-align:center;padding:16px;">No saved address. Please add delivery address.</p>';
+            return;
+        }
+        
+        const fullAddress = `${userAddress}, ${userCity}, ${userState} - ${userPincode}`;
+        
+        container.innerHTML = `
+            <div class="saved-address active" onclick="selectAddress('saved')">
+                <div class="saved-address-header">
+                    <span class="saved-address-name">Home</span>
+                    <span class="saved-address-label">DEFAULT</span>
+                </div>
+                <div class="saved-address-text">${fullAddress}</div>
+            </div>
+        `;
+        
+        selectedAddress = 'saved';
+    }
+    
+    function showNewAddressForm() {
+        document.getElementById('newAddressForm').style.display = 'block';
+    }
+    
+    function saveAndUseAddress() {
+        const address = document.getElementById('newAddress').value.trim();
+        const city = document.getElementById('newCity').value.trim();
+        const state = document.getElementById('newState').value.trim();
+        const pincode = document.getElementById('newPincode').value.trim();
+        
+        if (!address) {
+            showToast('Please enter address');
+            return;
+        }
+        
+        if (!pincode || pincode.length !== 6 || !/^\d+$/.test(pincode)) {
+            showToast('Please enter valid 6-digit pincode');
+            return;
+        }
+        
+        if (!city || !state) {
+            showToast('Please enter city and state');
+            return;
+        }
+        
+        const token = localStorage.getItem('techshop_token');
+        if (token) {
+            fetch('/api/user', {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': 'Bearer ' + token
+                },
+                body: JSON.stringify({
+                    address: address,
+                    city: city,
+                    state: state,
+                    pincode: pincode
+                })
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    userAddress = address;
+                    userCity = city;
+                    userState = state;
+                    userPincode = pincode;
+                    renderSavedAddresses();
+                    document.getElementById('newAddressForm').style.display = 'none';
+                    showToast('Address saved!');
+                }
+            })
+            .catch(err => showToast('Error saving address'));
+        } else {
+            showToast('Please login first');
+            window.location.href = 'login.html';
+        }
+    }
+    
+    function loadCart() {
+        const saved = localStorage.getItem('techshop_cart');
+        if (saved) {
+            cart = JSON.parse(saved);
+        }
+    }
+    
+    function renderSummary() {
+        const container = document.getElementById('summaryItems');
+        
+        if (cart.length === 0) {
+            container.innerHTML = '<p style="text-align:center;color:#6b7280;padding:20px;">No items</p>';
+            return;
+        }
+        
+        container.innerHTML = cart.map(item => `
+            <div class="summary-item">
+                <img src="${item.image}" alt="${item.name}">
+                <div class="summary-item-details">
+                    <div class="summary-item-name">${item.name}</div>
+                    <div class="summary-item-qty">Qty: ${item.quantity}</div>
+                </div>
+                <div class="summary-item-price">₹${(item.price * item.quantity).toLocaleString()}</div>
+            </div>
+        `).join('');
+        
+        const total = getCartTotal();
+        const savings = getCartSavings();
+        
+        document.getElementById('summarySubtotal').textContent = '₹' + (total + savings).toLocaleString();
+        document.getElementById('summaryDiscount').textContent = '-₹' + savings.toLocaleString();
+        document.getElementById('summaryTotal').textContent = '₹' + total.toLocaleString();
+    }
+    
+    function getCartTotal() {
+        return cart.reduce((total, item) => total + (item.price * item.quantity), 0);
+    }
+    
+    function getCartSavings() {
+        return cart.reduce((total, item) => ((item.originalPrice - item.price) * item.quantity) + total, 0);
+    }
+    
+    function updatePayButtons() {
+        const total = getCartTotal().toLocaleString();
+        document.getElementById('upiPayBtn').textContent = total;
+        document.getElementById('cardPayBtn').textContent = total;
+        document.getElementById('nbPayBtn').textContent = total;
+        document.getElementById('walletPayBtn').textContent = total;
+        document.getElementById('mainPayAmount').textContent = total;
+    }
+    
+    function selectMethod(element, method) {
+        document.querySelectorAll('.method-option').forEach(opt => opt.classList.remove('active'));
+        element.classList.add('active');
+        
+        document.querySelectorAll('.form-section').forEach(section => section.classList.remove('active'));
+        document.getElementById(method + 'Form').classList.add('active');
+        
+        selectedMethod = method;
+    }
+    
+    function selectUPI(element, app) {
+        document.querySelectorAll('.upi-app').forEach(app => app.classList.remove('active'));
+        element.classList.add('active');
+    }
+    
+    let qrCode = null;
+    
+    function showQRCode() {
+        const total = getCartTotal();
+        if (total <= 0) {
+            showToast('Your cart is empty!');
+            return;
+        }
+        
+        constupi = 'techshop@upi';
+        document.getElementById('qrAmount').textContent = total.toLocaleString();
+        document.getElementById('upiAddress').textContent = upi;
+        
+        const qrContainer = document.getElementById('qrCode');
+        qrContainer.innerHTML = '';
+        
+        const upiLink = 'upi://pay?pa=' + upi + '&am=' + total + '&cu=INR&tn=TechShop Order';
+        
+        qrCode = new QRCode(qrContainer, {
+            text: upiLink,
+            width: 180,
+            height: 180,
+            colorDark: '#000000',
+            colorLight: '#ffffff'
+        });
+        
+        document.getElementById('qrSection').style.display = 'block';
+        document.getElementById('upiManualSection').style.display = 'none';
+        
+        showToast('QR Code generated. Scan with your UPI app.');
+    }
+    
+    function confirmUPIPayment() {
+        const token = localStorage.getItem('techshop_token');
+        if (!token) {
+            showToast('Please login first!');
+            window.location.href = 'login.html';
+            return;
+        }
+        
+        if (cart.length === 0) {
+            showToast('Your cart is empty!');
+            return;
+        }
+        
+        if (!selectedAddress) {
+            showToast('Please add delivery address');
+            return;
+        }
+        
+        const subtotal = getCartTotal();
+        const savings = getCartSavings();
+        const totalAmount = Math.round(subtotal);
+        
+        showToast('Processing payment...');
+        
+        fetch('/api/orders', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': 'Bearer ' + token
+            },
+            body: JSON.stringify({
+                items: cart,
+                paymentMethod: 'upi',
+                subtotal: subtotal,
+                discount: savings,
+                shipping: 0,
+                totalAmount: totalAmount,
+                razorpayPaymentId: 'UPI-' + Date.now(),
+                shippingAddress: userAddress,
+                shippingCity: userCity,
+                shippingState: userState,
+                shippingPincode: userPincode
+            })
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                localStorage.removeItem('techshop_cart');
+                showToast('Payment successful! Order placed.');
+                setTimeout(() => {
+                    window.location.href = 'order-success.html';
+                }, 1500);
+            } else {
+                showToast(data.error || 'Order failed');
+            }
+        })
+        .catch(err => {
+            showToast('Error: ' + err.message);
+        });
+    }
+    
+    function selectBank(element, bank) {
+        document.querySelectorAll('#netbankingForm .bank-option').forEach(b => b.classList.remove('active'));
+        element.classList.add('active');
+    }
+    
+    function selectWallet(element, wallet) {
+        document.querySelectorAll('#walletsForm .bank-option').forEach(w => w.classList.remove('active'));
+        element.classList.add('active');
+    }
+    
+    function showToast(message) {
+        const existing = document.querySelector('.toast-msg');
+        if (existing) existing.remove();
+        
+        const toast = document.createElement('div');
+        toast.className = 'toast-msg';
+        toast.textContent = message;
+        document.body.appendChild(toast);
+        
+        setTimeout(() => toast.classList.add('show'), 10);
+        setTimeout(() => {
+            toast.classList.remove('show');
+            setTimeout(() => toast.remove(), 300);
+        }, 2500);
+    }
+    
+    function processPayment() {
+        if (cart.length === 0) {
+            showToast('Your cart is empty!');
+            return;
+        }
+        
+        const token = localStorage.getItem('techshop_token');
+        if (!token) {
+            showToast('Please login first!');
+            window.location.href = 'login.html';
+            return;
+        }
+        
+        const subtotal = getCartTotal();
+        const savings = getCartSavings();
+        const totalAmount = Math.round(subtotal);
+        
+        const handlePaymentSuccess = (paymentId) => {
+            if (!selectedAddress) {
+                showToast('Please add delivery address');
+                return;
+            }
+            
+            showToast('Processing order...');
+            
+            fetch('/api/orders', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': 'Bearer ' + token
+                },
+                body: JSON.stringify({
+                    items: cart,
+                    paymentMethod: selectedMethod,
+                    subtotal: subtotal,
+                    discount: savings,
+                    shipping: 0,
+                    totalAmount: totalAmount,
+                    razorpayPaymentId: paymentId,
+                    shippingAddress: userAddress,
+                    shippingCity: userCity,
+                    shippingState: userState,
+                    shippingPincode: userPincode
+                })
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    localStorage.removeItem('techshop_cart');
+                    showToast('Payment successful! Order placed.');
+                    setTimeout(() => {
+                        window.location.href = 'order-success.html';
+                    }, 1500);
+                } else {
+                    showToast(data.error || 'Order failed');
+                }
+            })
+            .catch(err => {
+                showToast('Error: ' + err.message);
+            });
+        };
+        
+        if (selectedMethod === 'netbanking') {
+            const bank = document.querySelector('#netbankingForm .bank-option.active span')?.textContent || 'Bank';
+            showToast(`Redirecting to ${bank}...`);
+            
+            const options = {
+                key: 'rzp_test_Se61IfySnLT1fG',
+                amount: totalAmount * 100,
+                currency: 'INR',
+                name: 'Tech Shop',
+                description: 'Net Banking Payment - ' + bank,
+                method: 'netbanking',
+                bank: bank.toLowerCase().replace(' ', '_'),
+                handler: function(response) {
+                    handlePaymentSuccess(response.razorpay_payment_id);
+                },
+                prefill: {
+                    name: localStorage.getItem('techshop_user') ? JSON.parse(localStorage.getItem('techshop_user')).name : '',
+                    email: localStorage.getItem('techshop_user') ? JSON.parse(localStorage.getItem('techshop_user')).email : '',
+                },
+                theme: { color: '#2874f0' }
+            };
+            
+            try {
+                const rzp = new Razorpay(options);
+                rzp.open();
+            } catch(e) {
+                handlePaymentSuccess('NETBANKING-' + Date.now());
+            }
+        } else if (selectedMethod === 'card') {
+            showToast('Processing card payment...');
+            handlePaymentSuccess('CARD-' + Date.now());
+        } else if (selectedMethod === 'wallets') {
+            const wallet = document.querySelector('#walletsForm .bank-option.active span')?.textContent || 'Wallet';
+            showToast(`Processing ${wallet}...`);
+            handlePaymentSuccess('WALLET-' + Date.now());
+        } else {
+            showToast('Opening payment...');
+            
+            const options = {
+                key: 'rzp_test_Se61IfySnLT1fG',
+                amount: totalAmount * 100,
+                currency: 'INR',
+                name: 'Tech Shop',
+                description: 'Order Payment',
+                handler: function(response) {
+                    handlePaymentSuccess(response.razorpay_payment_id);
+                },
+                prefill: {
+                    name: localStorage.getItem('techshop_user') ? JSON.parse(localStorage.getItem('techshop_user')).name : '',
+                    email: localStorage.getItem('techshop_user') ? JSON.parse(localStorage.getItem('techshop_user')).email : '',
+                },
+                theme: { color: '#2874f0' }
+            };
+            
+            try {
+                const rzp = new Razorpay(options);
+                rzp.open();
+            } catch(e) {
+                handlePaymentSuccess('UPI-' + Date.now());
+            }
+        }
+    }
+    
+    // Card number formatting
+    document.getElementById('cardNumber').addEventListener('input', function(e) {
+        let value = e.target.value.replace(/\s/g, '').replace(/\D/g, '');
+        let formatted = value.match(/.{1,4}/g)?.join(' ') || value;
+        e.target.value = formatted;
+    });
+    
+    // Expiry formatting
+    document.getElementById('cardExpiry').addEventListener('input', function(e) {
+        let value = e.target.value.replace(/\D/g, '');
+        if (value.length >= 2) {
+            value = value.slice(0, 2) + '/' + value.slice(2, 4);
+        }
+        e.target.value = value;
+    });
+</script>
+
+</body>
+</html>

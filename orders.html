@@ -1,0 +1,643 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Orders | Tech Shop</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Inter', sans-serif; background: #f5f7fb; color: #1f2937; }
+        
+        .header { background: white; padding: 16px 24px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); display: flex; align-items: center; justify-content: space-between; }
+        .brand-logo { font-size: 1.5rem; font-weight: 800; background: linear-gradient(135deg, #2874f0, #0a46b3); -webkit-background-clip: text; background-clip: text; color: transparent; display: flex; align-items: center; gap: 8px; }
+        .brand-logo i { background: none; color: #ffb81c; }
+        .nav-links { display: flex; align-items: center; }
+        .nav-links a { color: #2874f0; text-decoration: none; margin-left: 20px; font-weight: 500; }
+        
+        .container { max-width: 1000px; margin: 24px auto; padding: 0 24px; }
+        
+        .page-title { font-size: 1.5rem; font-weight: 700; margin-bottom: 24px; }
+        
+        .filter-bar { display: flex; gap: 12px; margin-bottom: 20px; flex-wrap: wrap; }
+        .search-box { flex: 1; min-width: 200px; position: relative; }
+        .search-box i { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: #9ca3af; }
+        .search-box input { width: 100%; padding: 10px 10px 10px 36px; border: 1px solid #e2e8f0; border-radius: 8px; font-size: 0.9rem; }
+        .filter-bar select { padding: 10px 12px; border: 1px solid #e2e8f0; border-radius: 8px; background: white; cursor: pointer; }
+        
+        .order-count { margin-bottom: 16px; color: #6b7280; }
+        
+        .order-card { background: white; border-radius: 16px; padding: 20px; margin-bottom: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.04); }
+        .order-header { display: flex; justify-content: space-between; align-items: center; padding-bottom: 16px; border-bottom: 1px solid #eee; margin-bottom: 16px; }
+        .order-id { font-weight: 700; color: #2874f0; font-family: monospace; }
+        .order-date { color: #6b7280; font-size: 0.9rem; }
+        .order-status { padding: 6px 16px; border-radius: 20px; font-weight: 600; font-size: 0.85rem; }
+        .status-processing { background: #fef3c7; color: #d97706; }
+        .status-confirmed { background: #dbeafe; color: #2563eb; }
+        .status-shipped { background: #e0e7ff; color: #4f46e5; }
+        .status-delivered { background: #dcfce7; color: #16a34a; }
+        .status-cancelled { background: #fee2e2; color: #dc2626; }
+        .status-returned { background: #f3e8ff; color: #9333ea; }
+        .status-refunded { background: #fce7f3; color: #db2777; }
+        
+        .refund-animation {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.85);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+        }
+        
+        .refund-animation.show { display: flex; }
+        
+        .refund-animation .money-icon {
+            font-size: 5rem;
+            color: #16a34a;
+            margin-bottom: 20px;
+        }
+        
+        .refund-animation .refund-text {
+            color: white;
+            font-size: 1.5rem;
+            font-weight: 600;
+        }
+        
+        .refund-animation .refund-amount {
+            color: #16a34a;
+            font-size: 2rem;
+            font-weight: 700;
+            margin-top: 10px;
+        }
+        
+        .refund-animation .account-text {
+            color: #9ca3af;
+            font-size: 1rem;
+            margin-top: 15px;
+        }
+        
+        .refund-animation .close-btn {
+            position: absolute;
+            top: 20px;
+            right: 30px;
+            background: rgba(255,255,255,0.1);
+            border: none;
+            color: white;
+            font-size: 1.5rem;
+            cursor: pointer;
+            padding: 10px 20px;
+            border-radius: 50px;
+        }
+        
+        .refund-animation .checkmark {
+            color: #16a34a;
+            font-size: 2.5rem;
+            margin-top: 20px;
+        }
+            margin-top: 20px;
+            animation: fade-in-out 2s ease-in-out infinite;
+        }
+        
+        .refund-animation .refund-amount {
+            color: #16a34a;
+            font-size: 3rem;
+            font-weight: 800;
+            margin-top: 10px;
+            animation: scale-pulse 1s ease-in-out infinite;
+        }
+        
+        .refund-animation .account-text {
+            color: #93c5fd;
+            font-size: 1.2rem;
+            margin-top: 20px;
+            animation: bounce 1s ease-in-out infinite;
+        }
+        
+        .refund-animation .close-btn {
+            position: absolute;
+            top: 20px;
+            right: 30px;
+            background: rgba(255,255,255,0.2);
+            border: none;
+            color: white;
+            font-size: 2rem;
+            cursor: pointer;
+            padding: 10px 20px;
+            border-radius: 50px;
+        }
+        
+        .refund-animation .checkmark {
+            position: absolute;
+            bottom: 50px;
+            color: #16a34a;
+            font-size: 4rem;
+            animation: bounce-check 0.5s ease-in-out infinite alternate;
+        }
+        
+        @keyframes money-drop {
+            0% { transform: translateY(-100px) rotate(-45deg); opacity: 0; }
+            20% { opacity: 1; }
+            50% { transform: translateY(0) rotate(0deg); }
+            60% { transform: translateY(-20px) rotate(5deg); }
+            70% { transform: translateY(0) rotate(-5deg); }
+            80% { transform: translateY(-10px) rotate(5deg); }
+            100% { transform: translateY(0) rotate(0deg); }
+        }
+        
+        @keyframes fade-in-out {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        
+        @keyframes scale-pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+        
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+        
+        @keyframes bounce-check {
+            0% { transform: translateY(20px); opacity: 0; }
+            100% { transform: translateY(0); opacity: 1; }
+        }
+        
+        @keyframes pulse-refund {
+            0%, 100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(219, 39, 119, 0.4); }
+            50% { transform: scale(1.05); box-shadow: 0 0 12px 4px rgba(219, 39, 119, 0.2); }
+        }
+        
+        @keyframes pulse-return {
+            0%, 100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(180, 83, 9, 0.4); }
+            50% { transform: scale(1.05); box-shadow: 0 0 12px 4px rgba(180, 83, 9, 0.2); }
+        }
+        
+        .order-items { margin-bottom: 16px; }
+        .order-item { display: flex; gap: 16px; padding: 12px 0; border-bottom: 1px solid #f0f0f0; }
+        .order-item:last-child { border-bottom: none; }
+        .item-img { width: 80px; height: 80px; object-fit: contain; border-radius: 8px; background: #f8fafc; }
+        .item-details { flex: 1; }
+        .item-name { font-weight: 600; margin-bottom: 4px; }
+        .item-info { font-size: 0.85rem; color: #6b7280; }
+        .item-price { font-weight: 700; text-align: right; }
+        .item-qty { font-size: 0.85rem; color: #6b7280; }
+        
+        .order-summary { display: flex; justify-content: space-between; align-items: center; padding-top: 16px; border-top: 1px solid #eee; }
+        .order-total { font-size: 1.2rem; font-weight: 700; }
+        .order-actions { display: flex; gap: 12px; }
+        .btn { padding: 10px 20px; border-radius: 8px; font-weight: 600; cursor: pointer; border: none; }
+        .btn-cancel { background: #fee2e2; color: #dc2626; }
+        .btn-return { background: #f3e8ff; color: #9333ea; }
+        .btn:hover { opacity: 0.8; }
+        .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+        
+        .tracking { margin-top: 16px; padding-top: 16px; border-top: 1px solid #eee; }
+        .tracking h4 { font-size: 0.9rem; margin-bottom: 12px; color: #6b7280; }
+        .tracking-item { display: flex; gap: 12px; padding: 8px 0; font-size: 0.9rem; }
+        .tracking-item i { color: #16a34a; margin-top: 4px; }
+        .tracking-item.pending i { color: #94a3b8; }
+        .tracking-time { color: #6b7280; font-size: 0.8rem; }
+        
+        .empty-orders { text-align: center; padding: 60px; color: #6b7280; }
+        .empty-orders i { font-size: 4rem; margin-bottom: 16px; color: #d1d5db; }
+        
+        .payment-info { margin-top: 12px; padding: 12px; background: #f8fafc; border-radius: 8px; font-size: 0.9rem; }
+        .payment-info span { font-weight: 600; }
+        
+        .toast-msg { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%) scale(0.9); background: #1f2937; color: white; padding: 12px 24px; border-radius: 8px; font-size: 0.9rem; opacity: 0; transition: 0.2s; pointer-events: none; z-index: 300; }
+        
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); display: none; align-items: center; justify-content: center; z-index: 500; }
+        .modal-overlay.show { display: flex; }
+        .modal-box { background: white; padding: 24px; border-radius: 16px; max-width: 400px; width: 90%; }
+        .modal-title { font-size: 1.2rem; font-weight: 700; margin-bottom: 16px; }
+        .cancel-amount { background: #f3f4f6; padding: 16px; border-radius: 8px; margin: 16px 0; text-align: center; font-size: 1.3rem; font-weight: 700; color: #16a34a; }
+        .cancel-textarea { width: 100%; padding: 12px; border: 1px solid #e2e8f0; border-radius: 8px; resize: vertical; min-height: 80px; font-family: inherit; }
+        .modal-buttons { display: flex; gap: 12px; margin-top: 16px; }
+        
+        .refund-anim { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); display: none; align-items: center; justify-content: center; flex-direction: column; z-index: 600; color: white; }
+        .refund-anim.show { display: flex; }
+        .refund-spinner { width: 80px; height: 80px; border: 4px solid #333; border-top-color: #16a34a; border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 20px; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .refund-text { font-size: 1.3rem; }
+        .refund-subtext { color: #9ca3af; margin-top: 8px; }
+        .toast-msg.show { opacity: 1; transform: translateX(-50%) scale(1); }
+        
+        @media (max-width: 520px) { .container { padding: 0 16px; } .order-header { flex-direction: column; align-items: flex-start; gap: 8px; } }
+    </style>
+</head>
+<body>
+
+<header class="header">
+    <div class="brand-logo"><i class="fas fa-store"></i> Tech Shop</div>
+    <div class="nav-links">
+        <span id="userEmail" style="color:#6b7280;margin-right:10px;"></span>
+        <a href="index.html"><i class="fas fa-arrow-left"></i> Continue Shopping</a>
+    </div>
+</header>
+
+<main class="container" style="padding-top:24px;">
+    <h1 class="page-title">My Orders</h1>
+    
+    <!-- Search and Filter Bar -->
+    <div class="filter-bar">
+        <div class="search-box">
+            <i class="fas fa-search"></i>
+            <input type="text" id="searchOrder" placeholder="Search orders..." onkeyup="filterOrders()">
+        </div>
+        <select id="sortOrder" onchange="sortOrders()">
+            <option value="date-desc">Newest First</option>
+            <option value="date-asc">Oldest First</option>
+            <option value="price-desc">Price: High to Low</option>
+            <option value="price-asc">Price: Low to High</option>
+            <option value="name-asc">Name: A to Z</option>
+        </select>
+        <select id="statusFilter" onchange="filterOrders()">
+            <option value="">All Status</option>
+            <option value="confirmed">Confirmed</option>
+            <option value="shipped">Shipped</option>
+            <option value="delivered">Delivered</option>
+            <option value="cancelled">Cancelled</option>
+            <option value="returned">Returned</option>
+        </select>
+    </div>
+    
+    <div id="ordersContainer"></div>
+</main>
+
+<!-- Cancel Modal -->
+<div class="modal-overlay" id="cancelModal">
+    <div class="modal-box">
+        <div class="modal-title">Cancel Order</div>
+        <p>Are you sure you want to cancel this order?</p>
+        <div class="cancel-amount">Refund: <span id="cancelOrderAmount">₹0</span></div>
+        <textarea class="cancel-textarea" id="cancelReason" placeholder="Reason for cancellation (optional)"></textarea>
+        <div class="modal-buttons">
+            <button class="btn" style="background:#6b7280;color:white;flex:1;" onclick="document.getElementById('cancelModal').classList.remove('show')">Keep Order</button>
+            <button class="btn" style="background:#dc2626;color:white;flex:1;" onclick="confirmCancelOrder()">Cancel & Refund</button>
+        </div>
+    </div>
+    <input type="hidden" id="cancelOrderId">
+</div>
+
+<!-- Refund Animation Overlay -->
+<div class="refund-animation" id="refundAnimation">
+    <button class="close-btn" onclick="closeRefundAnimation()">&times;</button>
+    <i class="fas fa-money-bill-wave money-icon"></i>
+    <div class="refund-text">Payment Refunded!</div>
+    <div class="refund-amount" id="refundAmount">₹0</div>
+    <div class="account-text">💰 Money credited to your account</div>
+    <i class="fas fa-check-circle checkmark"></i>
+</div>
+
+<script>
+const API_URL = '';  // Uses relative path like /api/orders
+
+let ordersData = [];
+
+document.addEventListener('DOMContentLoaded', loadOrders);
+
+function showToast(msg, isError = false) {
+    const t = document.getElementById('toastMsg');
+    t.textContent = msg;
+    t.style.background = isError ? '#dc2626' : '#1f2937';
+    t.classList.add('show');
+    setTimeout(() => t.classList.remove('show'), 2500);
+}
+
+async function loadOrders() {
+    const token = localStorage.getItem('techshop_token');
+    const user = JSON.parse(localStorage.getItem('techshop_user') || '{}');
+    
+    if (!token) {
+        window.location.href = 'login.html';
+        return;
+    }
+    
+    if (user.email) {
+        document.getElementById('userEmail').textContent = user.email;
+    }
+    
+    try {
+        const res = await fetch('/api/orders', {
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+        
+        if (res.status === 401 || res.status === 403) {
+            localStorage.removeItem('techshop_token');
+            localStorage.removeItem('techshop_user');
+            window.location.href = 'login.html';
+            return;
+        }
+        
+        const data = await res.json();
+        const container = document.getElementById('ordersContainer');
+        
+        if (!data.orders || data.orders.length === 0) {
+            container.innerHTML = '<div class="empty-orders"><i class="fas fa-shopping-bag"></i><h3>No orders yet</h3><p>Start shopping to see your orders here</p><a href="index.html" class="btn" style="background:#2874f0;color:white;margin-top:16px;">Shop Now</a></div>';
+            return;
+        }
+        
+        ordersData = data.orders;
+        
+        // Check for refunded orders and show animation
+        const refundedOrder = data.orders.find(o => o.order_status === 'refunded' || o.payment_status === 'refunded');
+        if (refundedOrder && !sessionStorage.getItem('refundShown')) {
+            setTimeout(() => showRefundAnimation(refundedOrder.total_amount), 500);
+            sessionStorage.setItem('refundShown', 'true');
+        }
+        
+        container.innerHTML = data.orders.map(order => `
+            <div class="order-card">
+                <div class="order-header">
+                    <div>
+                        <div class="order-id">${order.order_id}</div>
+                        <div class="order-date">Ordered on ${formatDate(order.created_at)}</div>
+                    </div>
+                    <div class="order-status ${getStatusClass(order.order_status)}">${capitalize(order.order_status)}</div>
+                </div>
+                <div class="order-items">
+                    ${order.items.map(item => `
+                        <div class="order-item">
+                            <img src="${item.image_url || 'https://placehold.co/80x80'}" class="item-img">
+                            <div>
+                                <div class="item-name">${item.product_name}</div>
+                                <div class="item-price">₹${parseFloat(item.product_price).toLocaleString()} x ${item.quantity}</div>
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>
+                <div class="payment-info">
+                    <span>Payment:</span> ${capitalize(order.payment_method || 'N/A')} | 
+                    <span>Status:</span> ${capitalize(order.payment_status)} | 
+                    ${order.delivery_date ? `<span>Expected Delivery:</span> ${formatDate(order.delivery_date)}` : ''}
+                </div>
+                ${order.tracking && order.tracking.length > 0 ? `
+                <div class="tracking">
+                    <h4>Tracking</h4>
+                    ${order.tracking.map(t => `
+                        <div class="tracking-item">
+                            <div class="tracking-dot"></div>
+                            <div>
+                                <div class="tracking-status">${capitalize(t.status)}</div>
+                                <div class="tracking-desc">${t.description}</div>
+                                <div class="tracking-date">${formatDate(t.created_at)}</div>
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>
+                ` : ''}
+                <div class="order-summary">
+                    <div class="order-total">Total: ₹${parseFloat(order.total_amount).toLocaleString()}</div>
+                    <div class="order-actions">
+                        ${['processing', 'confirmed'].includes(order.order_status) ? `<button class="btn btn-cancel" onclick="cancelOrder('${order.order_id}')">Cancel Order</button>` : ''}
+                        ${order.order_status === 'delivered' ? `<button class="btn btn-return" onclick="returnOrder('${order.order_id}')">Return Order</button>` : ''}
+                    </div>
+                </div>
+            </div>
+        `).join('');
+    } catch (error) {
+        showToast('Failed to load orders', true);
+    }
+}
+
+function getStatusClass(status) {
+    const classes = {
+        'processing': 'status-processing',
+        'confirmed': 'status-confirmed',
+        'shipped': 'status-shipped',
+        'delivered': 'status-delivered',
+        'cancelled': 'status-cancelled',
+        'returned': 'status-returned'
+    };
+    return classes[status] || 'status-processing';
+}
+
+function formatDate(date) {
+    return new Date(date).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
+}
+
+function capitalize(str) {
+    return str ? str.charAt(0).toUpperCase() + str.slice(1) : '';
+}
+
+// Sort and Filter Functions
+function sortOrders() {
+    const sortType = document.getElementById('sortOrder').value;
+    const searchTerm = document.getElementById('searchOrder').value.toLowerCase();
+    const statusFilter = document.getElementById('statusFilter').value;
+    
+    let filtered = ordersData.filter(order => {
+        // Status filter
+        if (statusFilter && order.order_status !== statusFilter) return false;
+        
+        // Search filter
+        if (searchTerm) {
+            const matchName = order.items && order.items.some(i => i.product_name.toLowerCase().includes(searchTerm));
+            const matchId = order.order_id.toLowerCase().includes(searchTerm);
+            if (!matchName && !matchId) return false;
+        }
+        return true;
+    });
+    
+    // Sort
+    filtered.sort((a, b) => {
+        switch(sortType) {
+            case 'date-desc': return new Date(b.created_at) - new Date(a.created_at);
+            case 'date-asc': return new Date(a.created_at) - new Date(b.created_at);
+            case 'price-desc': return parseFloat(b.total_amount) - parseFloat(a.total_amount);
+            case 'price-asc': return parseFloat(a.total_amount) - parseFloat(b.total_amount);
+            case 'name-asc': 
+                const nameA = a.items && a.items[0] ? a.items[0].product_name : '';
+                const nameB = b.items && b.items[0] ? b.items[0].product_name : '';
+                return nameA.localeCompare(nameB);
+            default: return 0;
+        }
+    });
+    
+    renderOrdersList(filtered);
+}
+
+function filterOrders() {
+    sortOrders();
+}
+
+function renderOrdersList(orders) {
+    const container = document.getElementById('ordersContainer');
+    const countEl = document.getElementById('orderCount');
+    
+    if (!orders || orders.length === 0) {
+        container.innerHTML = '<div class="empty-orders"><i class="fas fa-shopping-bag"></i><h3>No orders found</h3><p>Try adjusting your search or filters</p><a href="index.html" class="btn" style="background:#2874f0;color:white;margin-top:16px;">Shop Now</a></div>';
+        if (countEl) countEl.remove();
+        return;
+    }
+    
+    // Add count
+    if (!document.getElementById('orderCount')) {
+        const countDiv = document.createElement('div');
+        countDiv.id = 'orderCount';
+        countDiv.className = 'order-count';
+        container.before(countDiv);
+    }
+    document.getElementById('orderCount').textContent = `${orders.length} order${orders.length !== 1 ? 's' : ''} found`;
+    
+    container.innerHTML = orders.map(order => `
+        <div class="order-card">
+            <div class="order-header">
+                <div>
+                    <div class="order-id">${order.order_id}</div>
+                    <div class="order-date">Ordered on ${formatDate(order.created_at)}</div>
+                </div>
+                <div class="order-status ${getStatusClass(order.order_status)}">${capitalize(order.order_status)}</div>
+            </div>
+            <div class="order-items">
+                ${order.items.map(item => `
+                    <div class="order-item">
+                        <img src="${item.image_url || 'https://placehold.co/80x80'}" class="item-img">
+                        <div>
+                            <div class="item-name">${item.product_name}</div>
+                            <div class="item-price">₹${parseFloat(item.product_price).toLocaleString()} x ${item.quantity}</div>
+                        </div>
+                    </div>
+                `).join('')}
+            </div>
+            <div class="payment-info">
+                <span>Payment:</span> ${capitalize(order.payment_method || 'N/A')} | 
+                <span>Status:</span> ${capitalize(order.payment_status)} | 
+                ${order.delivery_date ? `<span>Expected:</span> ${formatDate(order.delivery_date)}` : ''}
+            </div>
+            ${order.tracking && order.tracking.length > 0 ? `
+            <div class="tracking">
+                <h4>Tracking</h4>
+                ${order.tracking.map(t => `
+                    <div class="tracking-item">
+                        <div class="tracking-dot"></div>
+                        <div>
+                            <div class="tracking-status">${capitalize(t.status)}</div>
+                            <div class="tracking-desc">${t.description}</div>
+                            <div class="tracking-date">${formatDate(t.created_at)}</div>
+                        </div>
+                    </div>
+                `).join('')}
+            </div>
+            ` : ''}
+            <div class="order-summary">
+                <div class="order-total">Total: ₹${parseFloat(order.total_amount).toLocaleString()}</div>
+                <div class="order-actions">
+                    ${['processing', 'confirmed'].includes(order.order_status) ? `<button class="btn btn-cancel" onclick="cancelOrder('${order.order_id}')">Cancel Order</button>` : ''}
+                    ${order.order_status === 'delivered' ? `<button class="btn btn-return" onclick="returnOrder('${order.order_id}')">Return Order</button>` : ''}
+                </div>
+            </div>
+        </div>
+    `).join('');
+}
+
+async function cancelOrder(orderId) {
+    const order = ordersData.find(o => o.order_id === orderId);
+    if (!order) return;
+    
+    document.getElementById('cancelOrderId').value = orderId;
+    document.getElementById('cancelOrderAmount').textContent = '₹' + parseFloat(order.total_amount).toLocaleString();
+    document.getElementById('cancelReason').value = '';
+    document.getElementById('cancelModal').classList.add('show');
+}
+
+function confirmCancelOrder() {
+    const orderId = document.getElementById('cancelOrderId').value;
+    const reason = document.getElementById('cancelReason').value || 'Order cancelled by user';
+    
+    document.getElementById('cancelModal').classList.remove('show');
+    
+    // Show refund animation
+    const anim = document.getElementById('refundAnim');
+    anim.classList.add('show');
+    
+    setTimeout(async () => {
+        try {
+            const token = localStorage.getItem('techshop_token');
+            const res = await fetch('/api/orders/' + orderId + '/cancel', {
+                method: 'POST',
+                headers: { 
+                    'Content-Type': 'application/json',
+                    'Authorization': 'Bearer ' + token
+                },
+                body: JSON.stringify({ reason })
+            });
+            
+            const data = await res.json();
+            anim.classList.remove('show');
+            
+            if (data.success) {
+                showToast('Order cancelled! Refund will be processed in 5-7 business days.');
+                loadOrders();
+            } else {
+                showToast(data.error || 'Failed to cancel', true);
+            }
+        } catch (error) {
+            anim.classList.remove('show');
+            showToast('Server error', true);
+        }
+    }, 3000);
+}
+
+async function returnOrder(orderId) {
+    if (!confirm('Are you sure you want to return this order?')) return;
+    
+    const reason = prompt('Reason for return (optional):') || 'Return requested by user';
+    
+    try {
+        const token = localStorage.getItem('techshop_token');
+        const res = await fetch('/api/orders/' + orderId + '/return', {
+            method: 'POST',
+            headers: { 
+                'Content-Type': 'application/json',
+                'Authorization': 'Bearer ' + token
+            },
+            body: JSON.stringify({ reason })
+        });
+        
+        const data = await res.json();
+        if (data.success) {
+            showToast('Return request submitted');
+            loadOrders();
+        } else {
+            showToast(data.error || 'Failed to return', true);
+        }
+    } catch (error) {
+        showToast('Server error', true);
+    }
+}
+
+function showRefundAnimation(amount) {
+    const anim = document.getElementById('refundAnimation');
+    if (!anim) return;
+    document.getElementById('refundAmount').textContent = '₹' + parseFloat(amount).toLocaleString();
+    anim.classList.add('show');
+    
+    setTimeout(() => anim.classList.remove('show'), 5000);
+}
+
+function closeRefundAnimation() {
+    const anim = document.getElementById('refundAnimation');
+    if (anim) anim.classList.remove('show');
+}
+</script>
+
+<!-- Refund Animation Overlay -->
+<div class="refund-animation" id="refundAnimation">
+    <button class="close-btn" onclick="closeRefundAnimation()">&times;</button>
+    <i class="fas fa-money-bill-wave money-icon"></i>
+    <div class="refund-text">Payment Refunded!</div>
+    <div class="refund-amount" id="refundAmount">₹0</div>
+    <div class="account-text">💰 Money credited to your account</div>
+    <i class="fas fa-check-circle checkmark"></i>
+</div>
+</body>
+</html>

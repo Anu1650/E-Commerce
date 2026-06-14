@@ -1,0 +1,257 @@
+{
+  "mobiles": [
+    {
+      "id": 1,
+      "name": "iPhone 16 Pro Max",
+      "price": 159900,
+      "originalPrice": 169900,
+      "rating": 4.8,
+      "reviews": 2340,
+      "category": "mobiles",
+      "brand": "Apple",
+      "image": "https://placehold.co/400x300/1e293b/white?text=iPhone+16+Pro",
+      "description": "A17 Pro chip, titanium design with 5x optical zoom. 8GB RAM, 256GB storage.",
+      "stock": 15,
+      "colors": ["Black Titanium", "White Titanium", "Blue Titanium"]
+    },
+    {
+      "id": 2,
+      "name": "Samsung Galaxy S25 Ultra",
+      "price": 129999,
+      "originalPrice": 149999,
+      "rating": 4.7,
+      "reviews": 1890,
+      "category": "mobiles",
+      "brand": "Samsung",
+      "image": "https://placehold.co/400x300/1e293b/white?text=Galaxy+S25",
+      "description": "200MP camera, S Pen included, Snapdragon 8 Gen 3.",
+      "stock": 20,
+      "colors": ["Phantom Black", "Cream", "Lavender"]
+    },
+    {
+      "id": 3,
+      "name": "OnePlus 13",
+      "price": 69999,
+      "originalPrice": 79999,
+      "rating": 4.6,
+      "reviews": 2100,
+      "category": "mobiles",
+      "brand": "OnePlus",
+      "image": "https://placehold.co/400x300/1e293b/white?text=OnePlus+13",
+      "description": "Snapdragon 8 Gen 3, 100W charging, 50MP camera.",
+      "stock": 25,
+      "colors": ["Eternal Green", "Silky Black"]
+    },
+    {
+      "id": 4,
+      "name": "Xiaomi 14 Ultra",
+      "price": 99999,
+      "originalPrice": 129999,
+      "rating": 4.5,
+      "reviews": 1450,
+      "category": "mobiles",
+      "brand": "Xiaomi",
+      "image": "https://placehold.co/400x300/1e293b/white?text=Xiaomi+14",
+      "description": "Leica camera, 120W fast charging, 1-inch sensor.",
+      "stock": 12,
+      "colors": ["Black", "White"]
+    },
+    {
+      "id": 5,
+      "name": "Google Pixel 9 Pro",
+      "price": 94999,
+      "originalPrice": 109999,
+      "rating": 4.7,
+      "reviews": 980,
+      "category": "mobiles",
+      "brand": "Google",
+      "image": "https://placehold.co/400x300/1e293b/white?text=Pixel+9+Pro",
+      "description": "Tensor G4 chip, pure Android experience, best-in-class camera.",
+      "stock": 18,
+      "colors": ["Obsidian", "Porcelain", "Rose"]
+    }
+  ],
+  "laptops": [
+    {
+      "id": 101,
+      "name": "MacBook Pro 16\" M3 Max",
+      "price": 249900,
+      "originalPrice": 279900,
+      "rating": 4.9,
+      "reviews": 560,
+      "category": "laptops",
+      "brand": "Apple",
+      "image": "https://placehold.co/400x300/1e293b/white?text=MacBook+Pro",
+      "description": "M3 Max chip, 36GB RAM, 1TB SSD, 40-core GPU.",
+      "stock": 8,
+      "colors": ["Space Black", "Silver"]
+    },
+    {
+      "id": 102,
+      "name": "Dell XPS 15",
+      "price": 149999,
+      "originalPrice": 179999,
+      "rating": 4.7,
+      "reviews": 430,
+      "category": "laptops",
+      "brand": "Dell",
+      "image": "https://placehold.co/400x300/1e293b/white?text=Dell+XPS",
+      "description": "Intel Ultra 9, OLED InfinityEdge display, 32GB RAM.",
+      "stock": 10,
+      "colors": ["Platinum Silver"]
+    },
+    {
+      "id": 103,
+      "name": "HP Spectre x360",
+      "price": 129999,
+      "originalPrice": 159999,
+      "rating": 4.6,
+      "reviews": 320,
+      "category": "laptops",
+      "brand": "HP",
+      "image": "https://placehold.co/400x300/1e293b/white?text=HP+Spectre",
+      "description": "2-in-1 convertible, 16GB RAM, 1TB SSD, touchscreen.",
+      "stock": 12,
+      "colors": ["Nightfall Black", "Poseidon Blue"]
+    }
+  ],
+  "electronics": [
+    {
+      "id": 201,
+      "name": "Sony WH-1000XM5",
+      "price": 27990,
+      "originalPrice": 34990,
+      "rating": 4.8,
+      "reviews": 2100,
+      "category": "electronics",
+      "brand": "Sony",
+      "image": "https://placehold.co/400x300/1e293b/white?text=Sony+XM5",
+      "description": "Industry-leading noise cancellation, 30hr battery life.",
+      "stock": 45,
+      "colors": ["Black", "Silver"]
+    },
+    {
+      "id": 202,
+      "name": "Apple AirPods Pro 2",
+      "price": 24900,
+      "originalPrice": 29900,
+      "rating": 4.7,
+      "reviews": 1890,
+      "category": "electronics",
+      "brand": "Apple",
+      "image": "https://placehold.co/400x300/1e293b/white?text=AirPods+Pro",
+      "description": "H2 chip, adaptive audio, USB-C charging case.",
+      "stock": 60,
+      "colors": ["White"]
+    },
+    {
+      "id": 203,
+      "name": "Samsung 65\" Neo QLED",
+      "price": 159990,
+      "originalPrice": 199990,
+      "rating": 4.8,
+      "reviews": 340,
+      "category": "electronics",
+      "brand": "Samsung",
+      "image": "https://placehold.co/400x300/1e293b/white?text=Samsung+TV",
+      "description": "4K Neo QLED, 120Hz, Quantum HDR 32x.",
+      "stock": 5,
+      "colors": ["Black"]
+    }
+  ],
+  "fashion": [
+    {
+      "id": 301,
+      "name": "Men's Classic Shirt",
+      "price": 1499,
+      "originalPrice": 2999,
+      "rating": 4.3,
+      "reviews": 450,
+      "category": "fashion",
+      "brand": "Van Heusen",
+      "image": "https://placehold.co/400x300/1e293b/white?text=Shirt",
+      "description": "100% cotton, premium fabric, wrinkle-free.",
+      "stock": 100,
+      "sizes": ["S", "M", "L", "XL", "XXL"],
+      "colors": ["White", "Blue", "Black"]
+    }
+  ],
+  "appliances": [
+    {
+      "id": 401,
+      "name": "Samsung 1.5 Ton AC",
+      "price": 34990,
+      "originalPrice": 45990,
+      "rating": 4.5,
+      "reviews": 320,
+      "category": "appliances",
+      "brand": "Samsung",
+      "image": "https://placehold.co/400x300/1e293b/white?text=Samsung+AC",
+      "description": "AI energy saving, convertible 5-in-1, copper condenser.",
+      "stock": 25,
+      "colors": ["White"]
+    }
+  ],
+  "gaming": [
+    {
+      "id": 501,
+      "name": "Razer Basilisk V3",
+      "price": 5499,
+      "originalPrice": 7999,
+      "rating": 4.9,
+      "reviews": 890,
+      "category": "gaming",
+      "brand": "Razer",
+      "image": "https://placehold.co/400x300/1e293b/white?text=Gaming+Mouse",
+      "description": "RGB lighting, 26K DPI, 11 programmable buttons.",
+      "stock": 50,
+      "colors": ["Black"]
+    },
+    {
+      "id": 502,
+      "name": "Logitech G Pro X",
+      "price": 14999,
+      "originalPrice": 19999,
+      "rating": 4.8,
+      "reviews": 430,
+      "category": "gaming",
+      "brand": "Logitech",
+      "image": "https://placehold.co/400x300/1e293b/white?text=Logitech+Headset",
+      "description": "Wireless, Blue Voice technology, 50mm drivers.",
+      "stock": 35,
+      "colors": ["Black"]
+    }
+  ],
+  "beauty": [
+    {
+      "id": 601,
+      "name": "Vitamin C Face Serum",
+      "price": 999,
+      "originalPrice": 1999,
+      "rating": 4.5,
+      "reviews": 560,
+      "category": "beauty",
+      "brand": "The Ordinary",
+      "image": "https://placehold.co/400x300/1e293b/white?text=Serum",
+      "description": "Vitamin C, hyaluronic acid, brightening formula.",
+      "stock": 80,
+      "quantity_ml": 30
+    }
+  ],
+  "furniture": [
+    {
+      "id": 701,
+      "name": "Ergonomic Office Chair",
+      "price": 8999,
+      "originalPrice": 14999,
+      "rating": 4.5,
+      "reviews": 210,
+      "category": "furniture",
+      "brand": "Featherlite",
+      "image": "https://placehold.co/400x300/1e293b/white?text=Office+Chair",
+      "description": "Mesh back, adjustable height, lumbar support.",
+      "stock": 40,
+      "colors": ["Black", "Grey"]
+    }
+  ]
+}

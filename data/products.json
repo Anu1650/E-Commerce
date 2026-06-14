@@ -1,0 +1,742 @@
+{
+  "mobiles": [
+    {
+      "id": 1,
+      "name": "iPhone 16 Pro Max",
+      "price": 159900,
+      "originalPrice": 169900,
+      "rating": 4.8,
+      "reviews": 2340,
+      "category": "mobiles",
+      "brand": "Apple",
+      "image": "mobileApple1.jpg",
+      "images": [
+        "mobileApple1.jpg",
+        "mobileApple2.jpg",
+        "mobileApple3.jpg"
+      ],
+      "colors": [
+        "Titanium Black",
+        "Titanium White",
+        "Titanium Desert"
+      ],
+      "storage": [
+        "256GB",
+        "512GB",
+        "1TB"
+      ],
+      "description": "A18 Pro chip, titanium design, 5x optical zoom, ProMotion 120Hz display.",
+      "specs": {
+        "display": "6.9\" Super Retina XDR OLED",
+        "processor": "A18 Pro chip",
+        "camera": "48MP Main, 12MP Ultra Wide, 12MP Telephoto",
+        "battery": "4685mAh",
+        "charging": "25W Wired, 15W Wireless"
+      }
+    },
+    {
+      "id": 2,
+      "name": "Samsung Galaxy S25 Ultra",
+      "price": 129999,
+      "originalPrice": 149999,
+      "rating": 4.7,
+      "reviews": 1890,
+      "category": "mobiles",
+      "brand": "Samsung",
+      "image": "mobileSamsung1.jpg",
+      "images": [
+        "mobileSamsung1.jpg",
+        "mobileSamsung2.jpg"
+      ],
+      "colors": [
+        "Titanium Black",
+        "Titanium Gray",
+        "Titanium Silver"
+      ],
+      "storage": [
+        "256GB",
+        "512GB",
+        "1TB"
+      ],
+      "description": "200MP camera, S Pen included, Snapdragon 8 Gen 3 processor.",
+      "specs": {
+        "display": "6.9\" Dynamic AMOLED 2X",
+        "processor": "Snapdragon 8 Gen 3",
+        "camera": "200MP Main, 50MP Ultra Wide, 50MP Telephoto",
+        "battery": "5000mAh",
+        "charging": "45W Wired, 15W Wireless"
+      }
+    },
+    {
+      "id": 3,
+      "name": "OnePlus 13",
+      "price": 69999,
+      "originalPrice": 79999,
+      "rating": 4.6,
+      "reviews": 2100,
+      "category": "mobiles",
+      "brand": "OnePlus",
+      "image": "mobileOnePlus1.jpg",
+      "images": [
+        "mobileOnePlus1.jpg",
+        "mobileOnePlus2.jpg"
+      ],
+      "colors": "Obsidian Black, Flowy Emerald",
+      "storage": [
+        "256GB",
+        "512GB"
+      ],
+      "description": "Snapdragon 8 Gen 3, 100W charging, 50MP camera.",
+      "specs": {
+        "display": "6.82\" LTPO AMOLED",
+        "processor": "Snapdragon 8 Gen 3",
+        "camera": "50MP Main, 50MP Ultra Wide, 50MP Telephoto",
+        "battery": "6000mAh",
+        "charging": "100W Wired, 50W Wireless"
+      }
+    },
+    {
+      "id": 4,
+      "name": "Xiaomi 14 Ultra",
+      "price": 99999,
+      "originalPrice": 129999,
+      "rating": 4.5,
+      "reviews": 1450,
+      "category": "mobiles",
+      "brand": "Xiaomi",
+      "image": "mobileXiaomi1.jpg",
+      "images": [
+        "mobileXiaomi1.jpg",
+        "mobileXiaomi2.jpg"
+      ],
+      "colors": "Black, White",
+      "storage": [
+        "512GB",
+        "1TB"
+      ],
+      "description": "Leica camera, 120W fast charging, 1-inch sensor.",
+      "specs": {
+        "display": "6.73\" LTPO AMOLED",
+        "processor": "Snapdragon 8 Gen 3",
+        "camera": "50MP Main (1\"), 50MP Ultra Wide, 50MP Telephoto",
+        "battery": "5300mAh",
+        "charging": "120W Wired, 80W Wireless"
+      }
+    },
+    {
+      "id": 5,
+      "name": "Google Pixel 9 Pro",
+      "price": 94999,
+      "originalPrice": 109999,
+      "rating": 4.7,
+      "reviews": 980,
+      "category": "mobiles",
+      "brand": "Google",
+      "image": "mobilePixel1.jpg",
+      "images": [
+        "mobilePixel1.jpg",
+        "mobilePixel2.jpg"
+      ],
+      "colors": "Obsidian, Porcelain, Bay, Peony",
+      "storage": [
+        "256GB",
+        "512GB"
+      ],
+      "description": "Tensor G4 chip, pure Android experience.",
+      "specs": {
+        "display": "6.8\" LTPO OLED",
+        "processor": "Tensor G4",
+        "camera": "50MP Main, 48MP Ultra Wide, 48MP Telephoto",
+        "battery": "5060mAh",
+        "charging": "45W Wired, 23W Wireless"
+      }
+    },
+    {
+      "id": 1777112652087,
+      "name": "iphone pro max 16",
+      "price": 159900,
+      "originalPrice": 169900,
+      "rating": 4.8,
+      "reviews": 2340,
+      "category": "mobiles",
+      "brand": "apple",
+      "image": "product_1777112652087.jpg",
+      "images": [
+        "product_1777112652087.jpg"
+      ],
+      "colors": "black",
+      "storage": "128",
+      "description": "The iPhone 16 Pro Max is a premium smartphone from Apple designed for users who want the biggest screen and highest-end features in the iPhone lineup. It combines powerful performance, advanced cameras, long battery life, and a durable titanium body.",
+      "specs": {}
+    },
+    {
+      "id": 1777215483344,
+      "name": "iphone 16 pro max",
+      "price": 159900,
+      "originalPrice": 169900,
+      "rating": 4.9,
+      "reviews": 1234,
+      "category": "mobiles",
+      "brand": "Apple",
+      "image": "1777215482766_IPHONE 16 PRO MAX.webp",
+      "images": [
+        "1777215482766_IPHONE 16 PRO MAX.webp",
+        "1777215482768_IPHONE 16 PRO MAX2.webp",
+        "1777215482925_IPHONE 16 PRO MAX3.webp"
+      ],
+      "colors": "Black, Blue, White",
+      "storage": "128GB, 256GB, 512GB",
+      "variations": {
+        "128": 59900,
+        "256GB": 69900
+      },
+      "description": "i m selling iphone 12 Pro Max 256gb White silver LLA Model Factory Unlock Facetime active PTA approved lush condition battery health 100% few days use In warranty till 18th December 2021 serious buyers please",
+      "specs": {}
+    }
+  ],
+  "laptops": [
+    {
+      "id": 101,
+      "name": "MacBook Pro 16\" M3 Max",
+      "price": 249900,
+      "originalPrice": 279900,
+      "rating": 4.9,
+      "reviews": 560,
+      "category": "laptops",
+      "brand": "Apple",
+      "image": "laptopApple1.jpg",
+      "images": [
+        "laptopApple1.jpg",
+        "laptopApple2.jpg"
+      ],
+      "colors": "Space Black, Silver",
+      "description": "M3 Max chip, 36GB RAM, 1TB SSD.",
+      "specs": {
+        "display": "16.2\" Liquid Retina XDR",
+        "processor": "M3 Max",
+        "ram": "36GB/48GB/64GB",
+        "storage": "512GB/1TB/2TB SSD",
+        "battery": "100Wh, 22hrs"
+      }
+    },
+    {
+      "id": 102,
+      "name": "Dell XPS 15",
+      "price": 149999,
+      "originalPrice": 179999,
+      "rating": 4.7,
+      "reviews": 430,
+      "category": "laptops",
+      "brand": "Dell",
+      "image": "laptopDell1.jpg",
+      "images": [
+        "laptopDell1.jpg",
+        "laptopDell2.jpg"
+      ],
+      "colors": "Platinum Silver",
+      "description": "Intel Ultra 9, OLED InfinityEdge display.",
+      "specs": {
+        "display": "15.6\" 3.5K OLED",
+        "processor": "Intel Core Ultra 9",
+        "ram": "16GB/32GB",
+        "storage": "512GB/1TB SSD",
+        "battery": "85Wh, 18hrs"
+      }
+    },
+    {
+      "id": 103,
+      "name": "HP Spectre x360",
+      "price": 129990,
+      "originalPrice": 159990,
+      "rating": 4.6,
+      "reviews": 320,
+      "category": "laptops",
+      "brand": "HP",
+      "image": "laptopHP1.jpg",
+      "images": [
+        "laptopHP1.jpg",
+        "laptopHP2.jpg"
+      ],
+      "colors": "Nightfall Blue, Natural Silver",
+      "description": "Convertible, Intel Evo, OLED display.",
+      "specs": {
+        "display": "14\" 2.8K OLED",
+        "processor": "Intel Core Ultra 7",
+        "ram": "16GB",
+        "storage": "512GB/1TB SSD",
+        "battery": "65Wh, 13hrs"
+      }
+    },
+    {
+      "id": 104,
+      "name": "Lenovo ThinkPad X1",
+      "price": 119999,
+      "originalPrice": 149999,
+      "rating": 4.7,
+      "reviews": 280,
+      "category": "laptops",
+      "brand": "Lenovo",
+      "image": "laptopLenovo1.jpg",
+      "images": [
+        "laptopLenovo1.jpg",
+        "laptopLenovo2.jpg"
+      ],
+      "colors": "Black",
+      "description": "Business laptop, Intel i7, 16GB RAM.",
+      "specs": {
+        "display": "14\" 2.8K OLED",
+        "processor": "Intel Core i7",
+        "ram": "16GB/32GB",
+        "storage": "512GB/1TB SSD",
+        "battery": "57Wh, 14hrs"
+      }
+    }
+  ],
+  "electronics": [
+    {
+      "id": 201,
+      "name": "Sony WH-1000XM5",
+      "price": 27990,
+      "originalPrice": 34990,
+      "rating": 4.8,
+      "reviews": 2100,
+      "category": "electronics",
+      "brand": "Sony",
+      "image": "headphoneSony1.jpg",
+      "images": [
+        "headphoneSony1.jpg",
+        "headphoneSony2.jpg"
+      ],
+      "colors": "Black, Silver",
+      "description": "Industry-leading noise cancellation, 30hr battery.",
+      "specs": {
+        "driver": "30mm",
+        "frequency": "4Hz-40kHz",
+        "battery": "30hrs",
+        "charging": "3.5hrs"
+      }
+    },
+    {
+      "id": 202,
+      "name": "Apple AirPods Pro 2",
+      "price": 24900,
+      "originalPrice": 29900,
+      "rating": 4.7,
+      "reviews": 1890,
+      "category": "electronics",
+      "brand": "Apple",
+      "image": "headphoneApple1.jpg",
+      "images": [
+        "headphoneApple1.jpg",
+        "headphoneApple2.jpg"
+      ],
+      "colors": "White",
+      "description": "H2 chip, adaptive audio, USB-C charging.",
+      "specs": {
+        "driver": "Custom Apple",
+        "battery": "6hrs, 30hrs with case",
+        "anc": "Yes",
+        "chip": "H2"
+      }
+    },
+    {
+      "id": 203,
+      "name": "boAt Airdopes 500",
+      "price": 1299,
+      "originalPrice": 3990,
+      "rating": 4.3,
+      "reviews": 4500,
+      "category": "electronics",
+      "brand": "boAt",
+      "image": "headphoneBoat1.jpg",
+      "images": [
+        "headphoneBoat1.jpg",
+        "headphoneBoat2.jpg"
+      ],
+      "colors": "Black, White, Blue",
+      "description": "50hrs playtime, ENx tech, Beast mode.",
+      "specs": {
+        "driver": "13mm",
+        "battery": "50hrs total",
+        "anc": "ENC"
+      }
+    },
+    {
+      "id": 204,
+      "name": "JBL Tune 770NC",
+      "price": 3499,
+      "originalPrice": 6999,
+      "rating": 4.4,
+      "reviews": 1200,
+      "category": "electronics",
+      "brand": "JBL",
+      "image": "headphoneJBL1.jpg",
+      "images": [
+        "headphoneJBL1.jpg",
+        "headphoneJBL2.jpg"
+      ],
+      "colors": "Black, White, Blue",
+      "description": "Adaptive noise cancelling, 70hr battery.",
+      "specs": {
+        "driver": "40mm",
+        "battery": "70hrs",
+        "anc": "Adaptive"
+      }
+    }
+  ],
+  "fashion": [
+    {
+      "id": 301,
+      "name": "Men's Classic Shirt",
+      "price": 1499,
+      "originalPrice": 2999,
+      "rating": 4.3,
+      "reviews": 450,
+      "category": "fashion",
+      "brand": "Van Heusen",
+      "image": "shirtMen1.jpg",
+      "images": [
+        "shirtMen1.jpg",
+        "shirtMen2.jpg"
+      ],
+      "colors": "White, Blue, Pink",
+      "sizes": [
+        "S",
+        "M",
+        "L",
+        "XL",
+        "XXL"
+      ],
+      "description": "100% cotton, premium fabric, wrinkle-free."
+    },
+    {
+      "id": 302,
+      "name": "Levi's Denim Jacket",
+      "price": 4999,
+      "originalPrice": 7999,
+      "rating": 4.5,
+      "reviews": 680,
+      "category": "fashion",
+      "brand": "Levi's",
+      "image": "jacketDenim1.jpg",
+      "images": [
+        "jacketDenim1.jpg",
+        "jacketDenim2.jpg"
+      ],
+      "colors": "Blue, Black",
+      "sizes": [
+        "S",
+        "M",
+        "L",
+        "XL"
+      ],
+      "description": "Classic fit, 100% cotton denim."
+    },
+    {
+      "id": 303,
+      "name": "Nike Air Max",
+      "price": 8999,
+      "originalPrice": 12999,
+      "rating": 4.6,
+      "reviews": 920,
+      "category": "fashion",
+      "brand": "Nike",
+      "image": "shoeNike1.jpg",
+      "images": [
+        "shoeNike1.jpg",
+        "shoeNike2.jpg"
+      ],
+      "colors": "Black, White, Red",
+      "sizes": [
+        "6",
+        "7",
+        "8",
+        "9",
+        "10",
+        "11"
+      ],
+      "description": "Air cushioning, premium comfort."
+    }
+  ],
+  "appliances": [
+    {
+      "id": 401,
+      "name": "Samsung 1.5 Ton AC",
+      "price": 34990,
+      "originalPrice": 45990,
+      "rating": 4.5,
+      "reviews": 320,
+      "category": "appliances",
+      "brand": "Samsung",
+      "image": "acSamsung1.jpg",
+      "images": [
+        "acSamsung1.jpg",
+        "acSamsung2.jpg"
+      ],
+      "colors": "White",
+      "description": "AI energy saving, convertible 5-in-1.",
+      "specs": {
+        "capacity": "1.5 Ton",
+        "cooler": "Inverter",
+        "star": "5 Star",
+        "warranty": "10 Years"
+      }
+    },
+    {
+      "id": 402,
+      "name": "LG 7kg Front Load",
+      "price": 32990,
+      "originalPrice": 42990,
+      "rating": 4.4,
+      "reviews": 410,
+      "category": "appliances",
+      "brand": "LG",
+      "image": "washingLG1.jpg",
+      "images": [
+        "washingLG1.jpg",
+        "washingLG2.jpg"
+      ],
+      "colors": "White",
+      "description": "Inverter direct drive, steam+.",
+      "specs": {
+        "capacity": "7kg",
+        "type": "Front Load",
+        "warranty": "2 Years"
+      }
+    },
+    {
+      "id": 403,
+      "name": "Micromax LED 43 inch",
+      "price": 21999,
+      "originalPrice": 34999,
+      "rating": 4.2,
+      "reviews": 560,
+      "category": "appliances",
+      "brand": "Micromax",
+      "image": "tvMicromax1.jpg",
+      "images": [
+        "tvMicromax1.jpg",
+        "tvMicromax2.jpg"
+      ],
+      "colors": "Black",
+      "description": "4K UHD, Dolby audio, smart TV.",
+      "specs": {
+        "display": "43 inch 4K UHD",
+        "smart": "Yes",
+        "hdmi": "3 Ports",
+        "usb": "2 Ports"
+      }
+    }
+  ],
+  "gaming": [
+    {
+      "id": 501,
+      "name": "Razer Basilisk V3 Pro",
+      "price": 8999,
+      "originalPrice": 11999,
+      "rating": 4.9,
+      "reviews": 890,
+      "category": "gaming",
+      "brand": "Razer",
+      "image": "mouseRazer1.jpg",
+      "images": [
+        "mouseRazer1.jpg",
+        "mouseRazer2.jpg"
+      ],
+      "colors": "Black, Custom RGB",
+      "description": "RGB lighting, 26K DPI, 11 buttons.",
+      "specs": {
+        "dpi": "26000",
+        "buttons": "11",
+        "weight": "101g",
+        "connection": "Wired USB-C"
+      }
+    },
+    {
+      "id": 502,
+      "name": "Logitech G Pro X",
+      "price": 14999,
+      "originalPrice": 19999,
+      "rating": 4.8,
+      "reviews": 430,
+      "category": "gaming",
+      "brand": "Logitech",
+      "image": "headsetLogitech1.jpg",
+      "images": [
+        "headsetLogitech1.jpg",
+        "headsetLogitech2.jpg"
+      ],
+      "colors": "Black",
+      "description": "Wireless, Blue Voice technology.",
+      "specs": {
+        "driver": "50mm",
+        "battery": "20hrs",
+        "connection": "Wireless 2.4GHz"
+      }
+    },
+    {
+      "id": 503,
+      "name": "Sony PS5 Controller",
+      "price": 5499,
+      "originalPrice": 6999,
+      "rating": 4.7,
+      "reviews": 1560,
+      "category": "gaming",
+      "brand": "Sony",
+      "image": "controllerPS51.jpg",
+      "images": [
+        "controllerPS51.jpg",
+        "controllerPS52.jpg"
+      ],
+      "colors": "White, Black, Stellar Red",
+      "description": "Haptic feedback, adaptive triggers.",
+      "specs": {
+        "connection": "Bluetooth/USB-C",
+        "battery": "12hrs",
+        "haptic": "Yes"
+      }
+    },
+    {
+      "id": 504,
+      "name": "Xbox Series X",
+      "price": 49990,
+      "originalPrice": 59990,
+      "rating": 4.8,
+      "reviews": 780,
+      "category": "gaming",
+      "brand": "Xbox",
+      "image": "consoleXbox1.jpg",
+      "images": [
+        "consoleXbox1.jpg",
+        "consoleXbox2.jpg"
+      ],
+      "colors": "Black",
+      "description": "12 TFLOPS, 1TB SSD, 4K.",
+      "specs": {
+        "storage": "1TB SSD",
+        "resolution": "4K 120fps",
+        "games": "Quick Resume"
+      }
+    }
+  ],
+  "beauty": [
+    {
+      "id": 601,
+      "name": "Vitamin C Face Serum",
+      "price": 999,
+      "originalPrice": 1999,
+      "rating": 4.5,
+      "reviews": 560,
+      "category": "beauty",
+      "brand": "The Ordinary",
+      "image": "serumVitaminc1.jpg",
+      "images": [
+        "serumVitaminc1.jpg"
+      ],
+      "description": "Vitamin C, hyaluronic acid, brightening.",
+      "size": "30ml",
+      "howToUse": "Apply 2-3 drops morning and night"
+    },
+    {
+      "id": 602,
+      "name": "Mamaearth Face Wash",
+      "price": 349,
+      "originalPrice": 599,
+      "rating": 4.4,
+      "reviews": 890,
+      "category": "beauty",
+      "brand": "Mamaearth",
+      "image": "facewashMama1.jpg",
+      "images": [
+        "facewashMama1.jpg"
+      ],
+      "description": "Vitamin C, SLS free, natural.",
+      "size": "100ml",
+      "howToUse": "Use twice daily"
+    },
+    {
+      "id": 603,
+      "name": "L'Oreal Hair Serum",
+      "price": 599,
+      "originalPrice": 999,
+      "rating": 4.5,
+      "reviews": 1200,
+      "category": "beauty",
+      "brand": "L'Oreal",
+      "image": "serumHair1.jpg",
+      "images": [
+        "serumHair1.jpg"
+      ],
+      "description": "Nutri-glow, argan oil.",
+      "size": "50ml",
+      "howToUse": "Apply on damp hair"
+    }
+  ],
+  "furniture": [
+    {
+      "id": 701,
+      "name": "Ergonomic Office Chair",
+      "price": 8999,
+      "originalPrice": 14999,
+      "rating": 4.5,
+      "reviews": 210,
+      "category": "furniture",
+      "brand": "Featherlite",
+      "image": "chairOffice1.jpg",
+      "images": [
+        "chairOffice1.jpg",
+        "chairOffice2.jpg"
+      ],
+      "colors": "Black, Gray",
+      "description": "Mesh back, adjustable, lumbar support.",
+      "specs": {
+        "material": "Mesh",
+        "height": "Adjustable",
+        "warranty": "3 Years"
+      }
+    },
+    {
+      "id": 702,
+      "name": "Amazon Basics Study Table",
+      "price": 4999,
+      "originalPrice": 8999,
+      "rating": 4.3,
+      "reviews": 340,
+      "category": "furniture",
+      "brand": "Amazon Basics",
+      "image": "tableStudy1.jpg",
+      "images": [
+        "tableStudy1.jpg",
+        "tableStudy2.jpg"
+      ],
+      "colors": "Brown, White",
+      "description": "Engineered wood, 120cm width.",
+      "specs": {
+        "material": "Engineered Wood",
+        "size": "120x60x75cm"
+      }
+    },
+    {
+      "id": 703,
+      "name": "Sleepyhead Queen Bed",
+      "price": 24999,
+      "originalPrice": 39999,
+      "rating": 4.6,
+      "reviews": 180,
+      "category": "furniture",
+      "brand": "Sleepyhead",
+      "image": "bedQueen1.jpg",
+      "images": [
+        "bedQueen1.jpg",
+        "bedQueen2.jpg"
+      ],
+      "colors": "White, Gray",
+      "description": "Memory foam mattress, hydraulic, storage.",
+      "specs": {
+        "size": "Queen",
+        "mattress": "Memory Foam",
+        "storage": "Yes"
+      }
+    }
+  ]
+}

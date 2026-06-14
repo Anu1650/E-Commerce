@@ -1,0 +1,504 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Profile | Tech Shop</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Inter', sans-serif; background: #f5f7fb; color: #1f2937; }
+        
+        .header { background: white; padding: 16px 24px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); display: flex; align-items: center; justify-content: space-between; }
+        .brand-logo { font-size: 1.5rem; font-weight: 800; background: linear-gradient(135deg, #2874f0, #0a46b3); -webkit-background-clip: text; background-clip: text; color: transparent; display: flex; align-items: center; gap: 8px; }
+        .brand-logo i { background: none; color: #ffb81c; }
+        .nav-links a { color: #2874f0; text-decoration: none; margin-left: 20px; font-weight: 500; }
+        
+        .container { max-width: 1000px; margin: 24px auto; padding: 0 24px; }
+        
+        .profile-header { background: white; border-radius: 16px; padding: 30px; text-align: center; margin-bottom: 24px; box-shadow: 0 2px 8px rgba(0,0,0,0.04); }
+        .avatar { width: 100px; height: 100px; background: linear-gradient(135deg, #2874f0, #0a46b3); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 16px; font-size: 2.5rem; color: white; font-weight: 700; }
+        .profile-name { font-size: 1.5rem; font-weight: 700; margin-bottom: 4px; }
+        .profile-email { color: #6b7280; margin-bottom: 8px; }
+        .profile-badges { display: flex; gap: 12px; justify-content: center; margin-top: 12px; }
+        .badge { padding: 6px 16px; border-radius: 20px; font-size: 0.8rem; font-weight: 600; }
+        .badge-verified { background: #dcfce7; color: #16a34a; }
+        .badge-member { background: #dbeafe; color: #2563eb; }
+        
+        .tabs { display: flex; gap: 8px; margin-bottom: 24px; }
+        .tab { padding: 12px 24px; background: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; transition: all 0.2s; }
+        .tab.active { background: #2874f0; color: white; }
+        
+        .section { background: white; border-radius: 16px; padding: 24px; box-shadow: 0 2px 8px rgba(0,0,0,0.04); margin-bottom: 24px; }
+        .section-title { font-size: 1.1rem; font-weight: 700; margin-bottom: 20px; display: flex; align-items: center; gap: 8px; }
+        .section-title i { color: #2874f0; }
+        
+        .info-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; }
+        .info-card { background: #f9fafb; padding: 20px; border-radius: 12px; display: flex; align-items: flex-start; gap: 16px; }
+        .info-card i { font-size: 1.5rem; color: #2874f0; margin-top: 4px; }
+        .info-label { font-size: 0.8rem; color: #6b7280; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px; }
+        .info-value { font-weight: 600; font-size: 1rem; }
+        
+        .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px; }
+        .form-group { margin-bottom: 16px; }
+        .form-group.full-width { grid-column: 1 / -1; }
+        .form-group label { display: block; font-weight: 500; margin-bottom: 8px; color: #374151; font-size: 0.9rem; }
+        .form-group input, .form-group textarea, .form-group select { width: 100%; padding: 12px 16px; border: 1.5px solid #e2e8f0; border-radius: 8px; font-size: 1rem; outline: none; transition: all 0.2s; font-family: 'Inter', sans-serif; }
+        .form-group input:focus, .form-group textarea:focus, .form-group select:focus { border-color: #2874f0; box-shadow: 0 0 0 3px rgba(40,116,240,0.1); }
+        .form-group input:disabled { background: #f3f4f6; color: #6b7280; }
+        
+        .btn { background: #2874f0; color: white; border: none; padding: 14px 28px; border-radius: 8px; font-weight: 600; cursor: pointer; transition: all 0.2s; font-size: 1rem; }
+        .btn:hover { background: #1a5cd8; }
+        .btn:disabled { background: #94a3b8; cursor: not-allowed; }
+        
+        .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
+        .stat-card { background: #f9f9f9; padding: 20px; border-radius: 12px; text-align: center; transition: all 0.2s; }
+        .stat-card:hover { background: #f0f2f5; }
+        .stat-card i { font-size: 2rem; color: #2874f0; margin-bottom: 8px; }
+        .stat-value { font-size: 1.8rem; font-weight: 700; color: #1f2937; }
+        .stat-label { color: #6b7280; font-size: 0.85rem; margin-top: 4px; }
+        
+        .order-summary { background: #f9fafb; padding: 20px; border-radius: 12px; margin-top: 20px; }
+        .order-item { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid #e2e8f0; }
+        .order-item:last-child { border-bottom: none; }
+        .order-item-name { font-weight: 500; }
+        .order-item-price { font-weight: 700; color: #2874f0; }
+        
+        .toast-msg { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%) scale(0.9); background: #1f2937; color: white; padding: 12px 24px; border-radius: 8px; font-size: 0.9rem; opacity: 0; transition: 0.2s; pointer-events: none; z-index: 300; }
+        .toast-msg.show { opacity: 1; transform: translateX(-50%) scale(1); }
+        .toast-msg.success { background: #16a34a; }
+        
+        .saved-indicator { display: flex; align-items: center; gap: 8px; padding: 16px; background: #dcfce7; border-radius: 8px; margin-top: 16px; color: #16a34a; font-weight: 500; }
+        .saved-indicator i { font-size: 1.2rem; }
+        
+        @media (max-width: 768px) { 
+            .info-grid, .stats-grid, .form-row { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+
+<header class="header">
+    <div class="brand-logo"><i class="fas fa-store"></i> Tech Shop</div>
+    <div class="nav-links">
+        <a href="index.html"><i class="fas fa-arrow-left"></i> Back to Shop</a>
+        <a href="orders.html"><i class="fas fa-box"></i> My Orders</a>
+        <a href="#" id="logoutBtn"><i class="fas fa-sign-out-alt"></i> Logout</a>
+    </div>
+</header>
+
+<div class="container">
+    <div class="profile-header">
+        <div class="avatar" id="avatarInitial">?</div>
+        <div class="profile-name" id="profileName">Loading...</div>
+        <div class="profile-email" id="profileEmail">...</div>
+        <div class="profile-badges">
+            <span class="badge badge-verified" id="verifiedBadge" style="display:none;"><i class="fas fa-check-circle"></i> Verified</span>
+            <span class="badge badge-member"><i class="fas fa-crown"></i> Premium Member</span>
+        </div>
+    </div>
+    
+    <div class="tabs">
+        <button class="tab active" onclick="showTab('profile')"><i class="fas fa-user"></i> Personal Info</button>
+        <button class="tab" onclick="showTab('address')"><i class="fas fa-map-marker-alt"></i> Address</button>
+        <button class="tab" onclick="showTab('stats')"><i class="fas fa-chart-line"></i> Statistics</button>
+        <button class="tab" onclick="showTab('wishlist')"><i class="fas fa-heart"></i> Wishlist</button>
+    </div>
+    
+    <!-- Personal Info Tab -->
+    <div id="profileTab" class="section">
+        <div class="section-title"><i class="fas fa-user-circle"></i> Personal Information</div>
+        
+        <div class="info-grid" style="margin-bottom: 24px;">
+            <div class="info-card">
+                <i class="fas fa-user"></i>
+                <div>
+                    <div class="info-label">Full Name</div>
+                    <div class="info-value" id="displayName">Not set</div>
+                </div>
+            </div>
+            <div class="info-card">
+                <i class="fas fa-envelope"></i>
+                <div>
+                    <div class="info-label">Email Address</div>
+                    <div class="info-value" id="displayEmail">Not set</div>
+                </div>
+            </div>
+            <div class="info-card">
+                <i class="fas fa-phone"></i>
+                <div>
+                    <div class="info-label">Phone Number</div>
+                    <div class="info-value" id="displayPhone">Not set</div>
+                </div>
+            </div>
+            <div class="info-card">
+                <i class="fas fa-calendar"></i>
+                <div>
+                    <div class="info-label">Member Since</div>
+                    <div class="info-value" id="displayJoined">Not set</div>
+                </div>
+            </div>
+        </div>
+        
+        <div id="savedMessage" style="display:none;" class="saved-indicator">
+            <i class="fas fa-check-circle"></i>
+            <span>Changes saved successfully!</span>
+        </div>
+        
+        <form id="profileForm">
+            <div class="section-title" style="margin-top: 24px;"><i class="fas fa-edit"></i> Edit Personal Information</div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>First Name *</label>
+                    <input type="text" id="firstName" required>
+                </div>
+                <div class="form-group">
+                    <label>Last Name</label>
+                    <input type="text" id="lastName">
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Email (Cannot be changed)</label>
+                    <input type="email" id="email" disabled>
+                </div>
+                <div class="form-group">
+                    <label>Phone Number</label>
+                    <input type="tel" id="phone" maxlength="10" placeholder="10 digit phone number">
+                </div>
+            </div>
+            <button type="submit" class="btn" id="saveBtn"><i class="fas fa-save"></i> Save Personal Info</button>
+        </form>
+    </div>
+    
+    <!-- Address Tab -->
+    <div id="addressTab" class="section" style="display:none;">
+        <div class="section-title"><i class="fas fa-map-marker-alt"></i> Address Information</div>
+        
+        <div class="info-grid" style="margin-bottom: 24px;">
+            <div class="info-card">
+                <i class="fas fa-home"></i>
+                <div>
+                    <div class="info-label">Full Address</div>
+                    <div class="info-value" id="displayAddress">Not set</div>
+                </div>
+            </div>
+            <div class="info-card">
+                <i class="fas fa-city"></i>
+                <div>
+                    <div class="info-label">City</div>
+                    <div class="info-value" id="displayCity">Not set</div>
+                </div>
+            </div>
+            <div class="info-card">
+                <i class="fas fa-map"></i>
+                <div>
+                    <div class="info-label">State</div>
+                    <div class="info-value" id="displayState">Not set</div>
+                </div>
+            </div>
+            <div class="info-card">
+                <i class="fas fa-mail-bulk"></i>
+                <div>
+                    <div class="info-label">Pincode</div>
+                    <div class="info-value" id="displayPincode">Not set</div>
+                </div>
+            </div>
+        </div>
+        
+        <form id="addressForm">
+            <div class="section-title" style="margin-top: 24px;"><i class="fas fa-edit"></i> Edit Address</div>
+            <div class="form-group full-width">
+                <label>Full Address</label>
+                <textarea id="address" rows="3" placeholder="House No., Street, Landmark"></textarea>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>City</label>
+                    <input type="text" id="city" placeholder="Enter city">
+                </div>
+                <div class="form-group">
+                    <label>State</label>
+                    <input type="text" id="state" placeholder="Enter state">
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Pincode</label>
+                    <input type="text" id="pincode" maxlength="6" placeholder="6 digit pincode">
+                </div>
+                <div class="form-group">
+                    <label>&nbsp;</label>
+                    <button type="submit" class="btn" id="saveAddressBtn"><i class="fas fa-save"></i> Save Address</button>
+                </div>
+            </div>
+        </form>
+    </div>
+    
+    <!-- Statistics Tab -->
+    <div id="statsTab" class="section" style="display:none;">
+        <div class="section-title"><i class="fas fa-chart-bar"></i> My Shopping Statistics</div>
+        <div class="stats-grid">
+            <div class="stat-card">
+                <i class="fas fa-shopping-bag"></i>
+                <div class="stat-value" id="totalOrders">0</div>
+                <div class="stat-label">Total Orders</div>
+            </div>
+            <div class="stat-card">
+                <i class="fas fa-rupee-sign"></i>
+                <div class="stat-value" id="totalSpent">₹0</div>
+                <div class="stat-label">Total Spent</div>
+            </div>
+            <div class="stat-card">
+                <i class="fas fa-heart"></i>
+                <div class="stat-value" id="wishlistCount">0</div>
+                <div class="stat-label">Wishlist Items</div>
+            </div>
+            <div class="stat-card">
+                <i class="fas fa-truck"></i>
+                <div class="stat-value" id="pendingDelivery">0</div>
+                <div class="stat-label">Pending Delivery</div>
+            </div>
+        </div>
+        
+        <div class="order-summary" id="recentOrders">
+            <h4 style="margin-bottom: 16px;"><i class="fas fa-history"></i> Recent Orders</h4>
+            <div id="recentOrdersList">Loading...</div>
+        </div>
+    </div>
+    
+    <!-- Wishlist Tab -->
+    <div id="wishlistTab" class="section" style="display:none;">
+        <div class="section-title"><i class="fas fa-heart"></i> My Wishlist</div>
+        <div class="info-grid" id="wishlistItems">
+            <p style="grid-column: 1/-1; text-align: center; color: #6b7280; padding: 40px;">No items in wishlist. Start shopping!</p>
+        </div>
+    </div>
+</div>
+
+<div id="toastMsg" class="toast-msg"></div>
+
+<script>
+    let userData = null;
+    
+    function showToast(message, isSuccess = false) {
+        const toast = document.getElementById('toastMsg');
+        toast.textContent = message;
+        toast.style.backgroundColor = isSuccess ? '#16a34a' : '#1f2937';
+        toast.classList.add('show');
+        setTimeout(() => toast.classList.remove('show'), 3000);
+    }
+    
+    function showTab(tab) {
+        document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+        document.querySelectorAll('.section').forEach(s => s.style.display = 'none');
+        document.getElementById(tab + 'Tab').style.display = 'block';
+        event.target.closest('.tab').classList.add('active');
+        
+        if (tab === 'stats') loadStats();
+        if (tab === 'wishlist') loadWishlist();
+    }
+    
+    async function loadProfile() {
+        const token = localStorage.getItem('techshop_token');
+        if (!token) { window.location.href = 'login.html'; return; }
+        
+        try {
+            const res = await fetch('/api/user/profile', { headers: { 'Authorization': 'Bearer ' + token } });
+            if (res.status === 401) { logout(); return; }
+            
+            const data = await res.json();
+            if (data.success) {
+                userData = data.user;
+                updateDisplayInfo();
+                populateForm();
+            }
+        } catch (e) { showToast('Error loading profile'); }
+    }
+    
+    function updateDisplayInfo() {
+        const initials = (userData.firstName || userData.email[0] || 'U').toUpperCase();
+        document.getElementById('avatarInitial').textContent = initials;
+        document.getElementById('profileName').textContent = userData.name || 'User';
+        document.getElementById('profileEmail').textContent = userData.email;
+        
+        document.getElementById('displayName').textContent = userData.name || 'Not set';
+        document.getElementById('displayEmail').textContent = userData.email;
+        document.getElementById('displayPhone').textContent = userData.phone || 'Not set';
+        document.getElementById('displayAddress').textContent = userData.address || 'Not set';
+        document.getElementById('displayCity').textContent = userData.city || 'Not set';
+        document.getElementById('displayState').textContent = userData.state || 'Not set';
+        document.getElementById('displayPincode').textContent = userData.pincode || 'Not set';
+        
+        if (userData.createdAt) {
+            const date = new Date(userData.createdAt);
+            document.getElementById('displayJoined').textContent = date.toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' });
+        }
+        
+        if (userData.isVerified) {
+            document.getElementById('verifiedBadge').style.display = 'inline-flex';
+        }
+    }
+    
+    function populateForm() {
+        document.getElementById('firstName').value = userData.firstName || '';
+        document.getElementById('lastName').value = userData.lastName || '';
+        document.getElementById('email').value = userData.email;
+        document.getElementById('phone').value = userData.phone || '';
+        document.getElementById('address').value = userData.address || '';
+        document.getElementById('city').value = userData.city || '';
+        document.getElementById('state').value = userData.state || '';
+        document.getElementById('pincode').value = userData.pincode || '';
+    }
+    
+    async function loadStats() {
+        const token = localStorage.getItem('techshop_token');
+        try {
+            const res = await fetch('/api/orders', { headers: { 'Authorization': 'Bearer ' + token } });
+            const data = await res.json();
+            
+            const orders = data.orders || [];
+            const totalOrders = orders.length;
+            const totalSpent = orders.reduce((sum, o) => sum + parseFloat(o.total_amount), 0);
+            const pendingDelivery = orders.filter(o => ['processing', 'confirmed', 'shipped'].includes(o.order_status)).length;
+            const wishlistCount = JSON.parse(localStorage.getItem('techshop_wishlist') || '[]').length;
+            
+            document.getElementById('totalOrders').textContent = totalOrders;
+            document.getElementById('totalSpent').textContent = '₹' + totalSpent.toLocaleString();
+            document.getElementById('pendingDelivery').textContent = pendingDelivery;
+            document.getElementById('wishlistCount').textContent = wishlistCount;
+            
+            // Recent orders
+            const recentList = document.getElementById('recentOrdersList');
+            if (orders.length === 0) {
+                recentList.innerHTML = '<p style="color:#6b7280;">No orders yet</p>';
+            } else {
+                recentList.innerHTML = orders.slice(0, 5).map(o => `
+                    <div class="order-item">
+                        <div>
+                            <div class="order-item-name">${o.order_id}</div>
+                            <div style="font-size:0.8rem;color:#6b7280;">${new Date(o.created_at).toLocaleDateString('en-IN')}</div>
+                        </div>
+                        <div class="order-item-price">₹${parseFloat(o.total_amount).toLocaleString()}</div>
+                    </div>
+                `).join('');
+            }
+        } catch (e) { console.log('Stats error'); }
+    }
+    
+    function loadWishlist() {
+        const wishlist = JSON.parse(localStorage.getItem('techshop_wishlist') || '[]');
+        const container = document.getElementById('wishlistItems');
+        
+        if (wishlist.length === 0) {
+            container.innerHTML = '<p style="grid-column:1/-1;text-align:center;color:#6b7280;padding:40px;">No items in wishlist</p>';
+            return;
+        }
+        
+        container.innerHTML = wishlist.map((item, i) => `
+            <div class="info-card">
+                <i class="fas fa-gift" style="font-size:2rem;"></i>
+                <div>
+                    <div class="info-value">${item.name}</div>
+                    <div style="color:#2874f0;font-weight:700;">₹${item.price.toLocaleString()}</div>
+                    <div style="margin-top:8px;">
+                        <button onclick="addToCart('${item.name}', ${item.price})" style="background:#2874f0;color:white;border:none;padding:8px 16px;border-radius:6px;cursor:pointer;margin-right:8px;">Add to Cart</button>
+                        <button onclick="removeFromWishlist(${i})" style="background:#fee2e2;color:#dc2626;border:none;padding:8px 16px;border-radius:6px;cursor:pointer;">Remove</button>
+                    </div>
+                </div>
+            </div>
+        `).join('');
+    }
+    
+    function addToCart(name, price) {
+        showToast('Added to cart!');
+    }
+    
+    function removeFromWishlist(index) {
+        let wishlist = JSON.parse(localStorage.getItem('techshop_wishlist') || '[]');
+        wishlist.splice(index, 1);
+        localStorage.setItem('techshop_wishlist', JSON.stringify(wishlist));
+        loadWishlist();
+        showToast('Removed from wishlist');
+    }
+    
+    document.getElementById('profileForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const btn = document.getElementById('saveBtn');
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
+        
+        const data = {
+            firstName: document.getElementById('firstName').value,
+            lastName: document.getElementById('lastName').value,
+            phone: document.getElementById('phone').value
+        };
+        
+        try {
+            const res = await fetch('/api/user/profile', {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + localStorage.getItem('techshop_token') },
+                body: JSON.stringify(data)
+            });
+            
+            if (res.ok) {
+                showToast('Profile saved!', true);
+                document.getElementById('savedMessage').style.display = 'flex';
+                setTimeout(() => document.getElementById('savedMessage').style.display = 'none', 3000);
+                
+                // Update local storage
+                localStorage.setItem('techshop_user', JSON.stringify({ ...userData, ...data }));
+                loadProfile();
+            }
+        } catch (e) { showToast('Error saving'); }
+        
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fas fa-save"></i> Save Personal Info';
+    });
+    
+    document.getElementById('addressForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const btn = document.getElementById('saveAddressBtn');
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
+        
+        const data = {
+            firstName: document.getElementById('firstName').value,
+            lastName: document.getElementById('lastName').value,
+            phone: document.getElementById('phone').value,
+            address: document.getElementById('address').value,
+            city: document.getElementById('city').value,
+            state: document.getElementById('state').value,
+            pincode: document.getElementById('pincode').value
+        };
+        
+        try {
+            const res = await fetch('/api/user/profile', {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + localStorage.getItem('techshop_token') },
+                body: JSON.stringify(data)
+            });
+            
+            if (res.ok) {
+                showToast('Address saved!', true);
+                loadProfile();
+            }
+        } catch (e) { showToast('Error saving'); }
+        
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fas fa-save"></i> Save Address';
+    });
+    
+    document.getElementById('logoutBtn').addEventListener('click', () => logout());
+    
+    function logout() {
+        localStorage.removeItem('techshop_token');
+        localStorage.removeItem('techshop_user');
+        window.location.href = 'login.html';
+    }
+    
+    loadProfile();
+</script>
+</body>
+</html>

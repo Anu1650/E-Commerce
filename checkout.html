@@ -1,0 +1,680 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Checkout | Tech Shop</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Inter', sans-serif; background: #f5f7fb; color: #1f2937; }
+        
+        .checkout-header { background: white; padding: 16px 24px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); display: flex; align-items: center; justify-content: space-between; }
+        .brand-logo { font-size: 1.5rem; font-weight: 800; background: linear-gradient(135deg, #2874f0, #0a46b3); -webkit-background-clip: text; background-clip: text; color: transparent; }
+        .back-link { color: #2874f0; text-decoration: none; font-weight: 500; }
+        
+        .checkout-container { max-width: 1100px; margin: 24px auto; padding: 0 24px; display: grid; grid-template-columns: 1fr 380px; gap: 24px; }
+        
+        .checkout-section { background: white; border-radius: 16px; padding: 24px; box-shadow: 0 2px 8px rgba(0,0,0,0.04); margin-bottom: 24px; }
+        .section-title { font-size: 1.1rem; font-weight: 700; margin-bottom: 20px; display: flex; align-items: center; gap: 10px; }
+        .section-title i { color: #2874f0; width: 24px; }
+        .step-badge { background: #2874f0; color: white; width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.85rem; font-weight: 600; }
+        
+        .input-group { margin-bottom: 16px; }
+        .input-group label { display: block; font-weight: 500; margin-bottom: 8px; font-size: 0.9rem; }
+        .input-group input, .input-group textarea, .input-group select { width: 100%; padding: 14px 16px; font-size: 1rem; border: 1.5px solid #e2e8f0; border-radius: 8px; outline: none; transition: all 0.2s; font-family: inherit; }
+        .input-group input:focus, .input-group textarea:focus, .input-group select:focus { border-color: #2874f0; }
+        .input-group textarea { resize: none; height: 80px; }
+        
+        .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+        
+        .saved-address-card { padding: 16px; border: 2px solid #e2e8f0; border-radius: 12px; cursor: pointer; margin-bottom: 12px; transition: all 0.2s; }
+        .saved-address-card:hover { border-color: #2874f0; }
+        .saved-address-card.active { border-color: #2874f0; background: #f0f5ff; }
+        .saved-address-radio { width: 20px; height: 20px; border: 2px solid #cbd5e1; border-radius: 50%; margin-right: 12px; display: inline-block; vertical-align: middle; }
+        .saved-address-card.active .saved-address-radio { border-color: #2874f0; background: #2874f0; box-shadow: inset 0 0 0 4px white; }
+        .saved-address-content { display: inline-block; vertical-align: middle; width: calc(100% - 40px); }
+        .address-label { display: inline-block; background: #e0f2fe; color: #0284c7; padding: 2px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: 600; margin-bottom: 6px; }
+        .address-text { color: #6b7280; font-size: 0.9rem; line-height: 1.5; }
+        
+        .add-address-btn { background: none; border: 2px dashed #e2e8f0; width: 100%; padding: 16px; border-radius: 12px; font-weight: 600; color: #6b7280; cursor: pointer; transition: all 0.2s; text-align: center; }
+        .add-address-btn:hover { border-color: #2874f0; color: #2874f0; }
+        
+        .continue-btn { background: #2874f0; border: none; width: 100%; padding: 16px; border-radius: 8px; font-weight: 700; font-size: 1.1rem; color: white; cursor: pointer; margin-top: 16px; }
+        .continue-btn:hover { background: #1a5cdb; }
+        
+        .order-summary-card { background: white; border-radius: 16px; padding: 24px; position: sticky; top: 80px; box-shadow: 0 2px 8px rgba(0,0,0,0.04); }
+        .summary-items { max-height: 300px; overflow-y: auto; margin-bottom: 16px; }
+        .summary-item { display: flex; gap: 12px; padding: 12px 0; border-bottom: 1px solid #f0f0f0; }
+        .summary-item img { width: 60px; height: 60px; object-fit: contain; border-radius: 8px; background: #f8fafc; }
+        .summary-item-name { font-weight: 600; font-size: 0.85rem; margin-bottom: 4px; }
+        .summary-item-qty { font-size: 0.8rem; color: #6b7280; }
+        .item-price { font-weight: 600; color: #059669; }
+        
+        .summary-row { display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 0.95rem; }
+        .summary-row.total { font-size: 1.1rem; font-weight: 700; padding-top: 12px; border-top: 1px solid #e2e8f0; margin-top: 12px; }
+        
+        /* Payment Section */
+        .payment-methods { display: flex; flex-direction: column; gap: 12px; }
+        .method-option { display: flex; align-items: center; gap: 12px; padding: 16px; border: 2px solid #e2e8f0; border-radius: 12px; cursor: pointer; transition: all 0.2s; }
+        .method-option:hover { border-color: #2874f0; }
+        .method-option.active { border-color: #2874f0; background: #f0f5ff; }
+        .method-radio { width: 20px; height: 20px; border: 2px solid #cbd5e1; border-radius: 50%; position: relative; }
+        .method-option.active .method-radio { border-color: #2874f0; }
+        .method-option.active .method-radio::after { content: ''; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 10px; height: 10px; background: #2874f0; border-radius: 50%; }
+        .method-icon { width: 40px; height: 40px; background: #f1f5f9; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; }
+        
+        .payment-forms { margin-top: 20px; }
+        .form-section { display: none; }
+        .form-section.active { display: block; }
+        
+        .upi-apps { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 16px; }
+        .upi-app { padding: 16px; border: 2px solid #e2e8f0; border-radius: 12px; text-align: center; cursor: pointer; transition: all 0.2s; }
+        .upi-app:hover { border-color: #2874f0; }
+        .upi-app.active { border-color: #2874f0; background: #f0f5ff; }
+        
+        .bank-list { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+        .bank-option { padding: 14px; border: 2px solid #e2e8f0; border-radius: 12px; text-align: center; cursor: pointer; transition: all 0.2s; }
+        .bank-option:hover { border-color: #2874f0; }
+        .bank-option.active { border-color: #2874f0; background: #f0f5ff; }
+        
+        .qr-section { text-align: center; padding: 20px; background: #f8fafc; border-radius: 12px; margin: 16px 0; }
+        .qr-code { display: inline-block; padding: 16px; background: white; border-radius: 12px; }
+        .upi-address { font-size: 1.1rem; font-weight: 600; color: #2874f0; margin: 12px 0; }
+        .qr-instructions { text-align: left; margin-top: 16px; font-size: 0.9rem; color: #6b7280; }
+        .qr-instructions li { margin: 6px 0; }
+        .paid-btn { background: #16a34a; }
+        
+        .toast-msg { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%) scale(0.9); background: #1f2937; color: white; padding: 12px 24px; border-radius: 8px; font-size: 0.9rem; opacity: 0; transition: 0.2s; pointer-events: none; z-index: 300; }
+        .toast-msg.show { opacity: 1; transform: translateX(-50%) scale(1); }
+        
+        .step-indicator { display: flex; margin-bottom: 24px; }
+        .step { flex: 1; padding: 12px; text-align: center; font-weight: 600; color: #9ca3af; background: #f3f4f6; border-radius: 8px; margin: 0 4px; }
+        .step.active { background: #2874f0; color: white; }
+        .step.completed { background: #16a34a; color: white; }
+        
+        .hidden { display: none; }
+        
+        @media (max-width: 860px) {
+            .checkout-container { grid-template-columns: 1fr; }
+            .order-summary-card { order: -1; }
+            .grid-2, .upi-apps, .bank-list { grid-template-columns: 1fr 1fr; }
+        }
+    </style>
+</head>
+<body>
+
+<header class="checkout-header">
+    <div class="brand-logo"><i class="fas fa-store"></i> Tech Shop</div>
+    <a href="index.html" class="back-link"><i class="fas fa-arrow-left"></i> Back to Cart</a>
+</header>
+
+<div class="checkout-container">
+    <div class="checkout-main">
+        <!-- Step Indicator -->
+        <div class="step-indicator">
+            <div class="step active" id="step1">1. Address</div>
+            <div class="step" id="step2">2. Payment</div>
+        </div>
+        
+        <!-- Step 1: Address -->
+        <div class="checkout-section" id="addressStep">
+            <div class="section-title">
+                <span class="step-badge">1</span>
+                Delivery Address
+            </div>
+            
+            <div id="savedAddresses"></div>
+            
+            <div class="add-address-btn" onclick="showNewAddressForm()" id="addAddressBtn">
+                <i class="fas fa-plus"></i> Add New Address
+            </div>
+            
+            <div id="addressForm" class="hidden">
+                <div class="input-group">
+                    <label for="newAddress">Full Address</label>
+                    <textarea id="newAddress" placeholder="House No, Street, Area, Landmark"></textarea>
+                </div>
+                <div class="grid-2">
+                    <div class="input-group">
+                        <label for="newCity">City</label>
+                        <input type="text" id="newCity" placeholder="City">
+                    </div>
+                    <div class="input-group">
+                        <label for="newState">State</label>
+                        <input type="text" id="newState" placeholder="State">
+                    </div>
+                </div>
+                <div class="input-group">
+                    <label for="newPincode">Pincode (6 digits)</label>
+                    <input type="text" id="newPincode" placeholder="123456" maxlength="6" style="width: 50%;">
+                </div>
+                <button class="continue-btn" onclick="saveAddress()">Save Address</button>
+            </div>
+            
+            <button class="continue-btn" onclick="goToPayment()" id="continueToPaymentBtn">Continue to Payment</button>
+        </div>
+        
+        <!-- Step 2: Payment -->
+        <div class="checkout-section hidden" id="paymentStep">
+            <div class="section-title">
+                <span class="step-badge">2</span>
+                Payment Method
+            </div>
+            
+            <div class="payment-methods">
+                <div class="method-option active" onclick="selectMethod(this, 'upi')">
+                    <div class="method-radio"></div>
+                    <div class="method-icon" style="background:#e0f2fe;color:#0284c7;"><i class="fab fa-google-pay"></i></div>
+                    <div><div style="font-weight:600;">UPI / QR Code</div><div style="font-size:0.85rem;color:#6b7280;">Instant transfer via UPI apps</div></div>
+                </div>
+                <div class="method-option" onclick="selectMethod(this, 'card')">
+                    <div class="method-radio"></div>
+                    <div class="method-icon" style="background:#fef3c7;color:#d97706;"><i class="fas fa-credit-card"></i></div>
+                    <div><div style="font-weight:600;">Credit / Debit Card</div><div style="font-size:0.85rem;color:#6b7280;">VISA, Mastercard, RuPay</div></div>
+                </div>
+                <div class="method-option" onclick="selectMethod(this, 'netbanking')">
+                    <div class="method-radio"></div>
+                    <div class="method-icon" style="background:#dcfce7;color:#16a34a;"><i class="fas fa-university"></i></div>
+                    <div><div style="font-weight:600;">Net Banking</div><div style="font-size:0.85rem;color:#6b7280;">Direct bank transfer</div></div>
+                </div>
+            </div>
+            
+            <div class="payment-forms">
+                <!-- UPI Form -->
+                <div class="form-section active" id="upiForm">
+                    <div class="upi-apps">
+                        <div class="upi-app active" onclick="selectUPI(this)"><i class="fab fa-google-pay" style="font-size:1.8rem;color:#4285f4;"></i><div style="font-size:0.8rem;margin-top:6px;">GPay</div></div>
+                        <div class="upi-app" onclick="selectUPI(this)"><i class="fab fa-phonepe" style="font-size:1.8rem;color:#6739b7;"></i><div style="font-size:0.8rem;margin-top:6px;">PhonePe</div></div>
+                        <div class="upi-app" onclick="selectUPI(this)"><i class="fab fa-paypal" style="font-size:1.8rem;color:#00baf2;"></i><div style="font-size:0.8rem;margin-top:6px;">Paytm</div></div>
+                        <div class="upi-app" onclick="selectUPI(this)"><i class="fas fa-mobile-alt" style="font-size:1.8rem;color:#ea345a;"></i><div style="font-size:0.8rem;margin-top:6px;">BHIM</div></div>
+                    </div>
+                    <button class="continue-btn" style="background:#059669;" onclick="showQRCode()">Show QR Code</button>
+                    
+                    <div id="qrSection" class="qr-section hidden">
+                        <div class="qr-code" id="qrCode"></div>
+                        <div class="upi-address">techshop@upi</div>
+                        <p style="font-size:0.85rem;color:#6b7280;">Scan with any UPI app</p>
+                        <ul class="qr-instructions">
+                            <li>Open any UPI app (GPay, PhonePe, Paytm)</li>
+                            <li>Scan this QR code</li>
+                            <li>Verify amount ₹<span id="qrAmount">0</span></li>
+                            <li>Complete payment</li>
+                            <li>Click "I've Paid" below</li>
+                        </ul>
+                        <button class="continue-btn paid-btn" onclick="placeOrder('upi')">I've Paid - Place Order</button>
+                    </div>
+                    
+                    <div style="margin-top:16px;padding-top:16px;border-top:1px dashed #e2e8f0;">
+                        <p style="font-size:0.8rem;color:#6b7280;margin-bottom:8px;">Or for testing without payment:</p>
+                        <button class="continue-btn" style="background:#6b7280;" onclick="placeOrder('upi')">Test Order (Skip Payment)</button>
+                    </div>
+                </div>
+                
+                <!-- Card Form -->
+                <div class="form-section" id="cardForm">
+                    <div class="input-group">
+                        <label for="cardNumber">Card Number</label>
+                        <input type="text" placeholder="1234 5678 9012 3456" id="cardNumber">
+                    </div>
+                    <div class="input-group">
+                        <label for="cardName">Cardholder Name</label>
+                        <input type="text" placeholder="Name on card" id="cardName">
+                    </div>
+                    <div class="grid-2">
+                        <div class="input-group">
+                            <label for="cardExpiry">Expiry</label>
+                            <input type="text" placeholder="MM/YY" id="cardExpiry">
+                        </div>
+                        <div class="input-group">
+                            <label for="cardCvv">CVV</label>
+                            <input type="text" placeholder="123" id="cardCvv">
+                        </div>
+                    </div>
+                    <button class="continue-btn" onclick="placeOrder('card')">Pay ₹<span id="cardPayBtn">0</span> & Place Order</button>
+                </div>
+                
+                <!-- Net Banking Form -->
+                <div class="form-section" id="netbankingForm">
+                    <div class="bank-list">
+                        <div class="bank-option active" onclick="selectBank(this)"><i class="fas fa-university" style="font-size:1.5rem;color:#2874f0;"></i><div style="font-size:0.8rem;margin-top:6px;">ICICI</div></div>
+                        <div class="bank-option" onclick="selectBank(this)"><i class="fas fa-university" style="font-size:1.5rem;color:#2874f0;"></i><div style="font-size:0.8rem;margin-top:6px;">HDFC</div></div>
+                        <div class="bank-option" onclick="selectBank(this)"><i class="fas fa-university" style="font-size:1.5rem;color:#2874f0;"></i><div style="font-size:0.8rem;margin-top:6px;">SBI</div></div>
+                        <div class="bank-option" onclick="selectBank(this)"><i class="fas fa-university" style="font-size:1.5rem;color:#2874f0;"></i><div style="font-size:0.8rem;margin-top:6px;">Axis</div></div>
+                        <div class="bank-option" onclick="selectBank(this)"><i class="fas fa-university" style="font-size:1.5rem;color:#2874f0;"></i><div style="font-size:0.8rem;margin-top:6px;">Kotak</div></div>
+                        <div class="bank-option" onclick="selectBank(this)"><i class="fas fa-university" style="font-size:1.5rem;color:#2874f0;"></i><div style="font-size:0.8rem;margin-top:6px;">YES</div></div>
+                    </div>
+                    <button class="continue-btn" onclick="placeOrder('netbanking')">Pay ₹<span id="nbPayBtn">0</span> & Place Order</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="summary-section">
+        <div class="order-summary-card">
+            <div class="section-title"><i class="fas fa-shopping-bag"></i> Order Summary</div>
+            <div class="summary-items" id="summaryItems"></div>
+            <div class="summary-row"><span>Subtotal</span><span id="summarySubtotal">₹0</span></div>
+            <div class="summary-row"><span>Discount</span><span style="color:#16a34a;" id="summaryDiscount">-₹0</span></div>
+            <div class="summary-row"><span>Shipping</span><span>Free</span></div>
+            <div class="summary-row total"><span>Total</span><span id="summaryTotal">₹0</span></div>
+            
+            <div id="selectedAddressDisplay" class="hidden" style="margin-top:16px;padding-top:16px;border-top:1px solid #e2e8f0;">
+                <div style="font-weight:600;margin-bottom:8px;">Delivery Address:</div>
+                <div style="font-size:0.9rem;color:#6b7280;" id="displayAddress"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="toastMsg" class="toast-msg">Processing...</div>
+
+<!-- Debug Order Button (for testing) -->
+<button onclick="debugTestOrder()" style="position:fixed;bottom:20px;right:20px;background:#16a34a;color:white;padding:12px 20px;border:none;border-radius:8px;cursor:pointer;font-weight:600;z-index:9999;">
+    <i class="fas fa-bug"></i> Debug Test Order
+</button>
+
+<script src="js/products.js"></script>
+<script>
+    let cart = [];
+    let selectedMethod = 'upi';
+    let addressData = null;
+    let userData = null;
+    
+    document.addEventListener('DOMContentLoaded', function() {
+        loadCart();
+        loadUserData();
+        renderSummary();
+    });
+    
+    function loadCart() {
+        const saved = localStorage.getItem('techshop_cart');
+        if (saved) {
+            cart = JSON.parse(saved);
+        }
+    }
+    
+    function renderSummary() {
+        const container = document.getElementById('summaryItems');
+        
+        if (cart.length === 0) {
+            container.innerHTML = '<p style="text-align:center;color:#6b7280;padding:20px;">Cart is empty</p>';
+            return;
+        }
+        
+        container.innerHTML = cart.map(item => `
+            <div class="summary-item">
+                <img src="${item.image}" alt="${item.name}">
+                <div style="flex:1;">
+                    <div class="summary-item-name">${item.name}</div>
+                    <div class="summary-item-qty">Qty: ${item.quantity}</div>
+                </div>
+                <div class="item-price">₹${(item.price * item.quantity).toLocaleString()}</div>
+            </div>
+        `).join('');
+        
+        const total = getCartTotal();
+        const savings = getCartSavings();
+        
+        document.getElementById('summarySubtotal').textContent = '₹' + (total + savings).toLocaleString();
+        document.getElementById('summaryDiscount').textContent = '-₹' + savings.toLocaleString();
+        document.getElementById('summaryTotal').textContent = '₹' + total.toLocaleString();
+        document.getElementById('qrAmount').textContent = total.toLocaleString();
+        document.getElementById('cardPayBtn').textContent = total.toLocaleString();
+        document.getElementById('nbPayBtn').textContent = total.toLocaleString();
+    }
+    
+    function getCartTotal() {
+        return cart.reduce((total, item) => total + (item.price * item.quantity), 0);
+    }
+    
+    function getCartSavings() {
+        return cart.reduce((total, item) => ((item.originalPrice - item.price) * item.quantity) + total, 0);
+    }
+    
+    function loadUserData() {
+        const token = localStorage.getItem('techshop_token');
+        if (!token) {
+            window.location.href = 'login.html';
+            return;
+        }
+        
+        fetch('/api/user/profile', {
+            headers: { 'Authorization': 'Bearer ' + token }
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.success && data.user) {
+                userData = data.user;
+                renderSavedAddresses();
+            } else {
+                console.log('No user data:', data);
+            }
+        })
+        .catch(err => console.error('Load user error:', err));
+    }
+    
+    function renderSavedAddresses() {
+        const container = document.getElementById('savedAddresses');
+        
+        if (userData && userData.address && userData.pincode) {
+            addressData = {
+                address: userData.address,
+                city: userData.city,
+                state: userData.state,
+                pincode: userData.pincode
+            };
+            
+            const fullAddr = `${userData.address}, ${userData.city}, ${userData.state} - ${userData.pincode}`;
+            
+            container.innerHTML = `
+                <div class="saved-address-card active" onclick="selectSavedAddress(this)">
+                    <div class="saved-address-radio"></div>
+                    <div class="saved-address-content">
+                        <span class="address-label">SAVED ADDRESS</span>
+                        <div class="address-text">${fullAddr}</div>
+                    </div>
+                </div>
+            `;
+            
+            document.getElementById('selectedAddressDisplay').classList.remove('hidden');
+            document.getElementById('displayAddress').textContent = fullAddr;
+            document.getElementById('continueToPaymentBtn').disabled = false;
+        } else {
+            container.innerHTML = '<p style="color:#6b7280;text-align:center;padding:16px;">No saved address found</p>';
+            document.getElementById('continueToPaymentBtn').disabled = true;
+        }
+    }
+    
+    function selectSavedAddress(element) {
+        document.querySelectorAll('.saved-address-card').forEach(c => c.classList.remove('active'));
+        element.classList.add('active');
+    }
+    
+    function showNewAddressForm() {
+        document.getElementById('addressForm').classList.remove('hidden');
+        document.getElementById('addAddressBtn').classList.add('hidden');
+    }
+    
+    function saveAddress() {
+        const address = document.getElementById('newAddress').value.trim();
+        const city = document.getElementById('newCity').value.trim();
+        const state = document.getElementById('newState').value.trim();
+        const pincode = document.getElementById('newPincode').value.trim();
+        
+        if (!address) {
+            showToast('Please enter address');
+            return;
+        }
+        
+        if (!pincode || pincode.length !== 6 || !/^\d+$/.test(pincode)) {
+            showToast('Please enter valid 6-digit pincode');
+            return;
+        }
+        
+        if (!city || !state) {
+            showToast('Please enter city and state');
+            return;
+        }
+        
+        const token = localStorage.getItem('techshop_token');
+        
+        fetch('/api/user/profile', {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': 'Bearer ' + token
+            },
+            body: JSON.stringify({
+                firstName: userData.first_name || '',
+                lastName: userData.last_name || '',
+                phone: userData.phone || '',
+                address: address,
+                city: city,
+                state: state,
+                pincode: pincode
+            })
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                addressData = { address, city, state, pincode };
+                userData = { ...userData, address, city, state, pincode };
+                
+                document.getElementById('addressForm').classList.add('hidden');
+                document.getElementById('addAddressBtn').classList.remove('hidden');
+                renderSavedAddresses();
+                showToast('Address saved!');
+            } else {
+                showToast('Error saving address');
+            }
+        })
+        .catch(err => showToast('Error: ' + err.message));
+    }
+    
+    function goToPayment() {
+        if (!addressData) {
+            if (!userData || !userData.address) {
+                showToast('Please save address first');
+                return;
+            }
+            addressData = {
+                address: userData.address,
+                city: userData.city,
+                state: userData.state,
+                pincode: userData.pincode
+            };
+        }
+        
+        document.getElementById('step1').classList.remove('active');
+        document.getElementById('step1').classList.add('completed');
+        document.getElementById('step2').classList.add('active');
+        
+        document.getElementById('addressStep').classList.add('hidden');
+        document.getElementById('paymentStep').classList.remove('hidden');
+    }
+    
+    function selectMethod(element, method) {
+        document.querySelectorAll('.method-option').forEach(opt => opt.classList.remove('active'));
+        element.classList.add('active');
+        
+        document.querySelectorAll('.form-section').forEach(section => section.classList.remove('active'));
+        document.getElementById(method + 'Form').classList.add('active');
+        
+        selectedMethod = method;
+    }
+    
+    function selectUPI(element) {
+        document.querySelectorAll('.upi-app').forEach(app => app.classList.remove('active'));
+        element.classList.add('active');
+    }
+    
+    function selectBank(element) {
+        document.querySelectorAll('.bank-option').forEach(b => b.classList.remove('active'));
+        element.classList.add('active');
+    }
+    
+    function showQRCode() {
+        const total = getCartTotal();
+        const qrContainer = document.getElementById('qrCode');
+        qrContainer.innerHTML = '';
+        
+        new QRCode(qrContainer, {
+            text: 'upi://pay?pa=techshop@upi&am=' + total + '&cu=INR&tn=TechShop Order',
+            width: 160,
+            height: 160
+        });
+        
+        document.getElementById('qrSection').classList.remove('hidden');
+    }
+    
+    function showToast(message) {
+        const existing = document.querySelector('.toast-msg');
+        if (existing) existing.remove();
+        
+        const toast = document.createElement('div');
+        toast.className = 'toast-msg';
+        toast.textContent = message;
+        document.body.appendChild(toast);
+        
+        setTimeout(() => toast.classList.add('show'), 10);
+        setTimeout(() => {
+            toast.classList.remove('show');
+            setTimeout(() => toast.remove(), 300);
+        }, 2500);
+    }
+    
+    function placeOrder(paymentMethod) {
+        if (!addressData) {
+            showToast('Please add delivery address');
+            return;
+        }
+        
+        if (cart.length === 0) {
+            showToast('Your cart is empty');
+            return;
+        }
+        
+        const token = localStorage.getItem('techshop_token');
+        if (!token) {
+            window.location.href = 'login.html';
+            return;
+        }
+        
+        const subtotal = getCartTotal();
+        const savings = getCartSavings();
+        const totalAmount = Math.round(subtotal);
+        
+        // Open Razorpay checkout
+        const options = {
+            key: 'rzp_test_Se61IfySnLT1fG',
+            amount: totalAmount * 100,
+            currency: 'INR',
+            name: 'Tech Shop',
+            description: 'Order Payment - ₹' + totalAmount.toLocaleString(),
+            image: 'https://placehold.co/100x100/2874f0/white?text=TS',
+            handler: function(response) {
+                placeOrderAPI(paymentMethod, totalAmount, subtotal, savings, response.razorpay_payment_id);
+            },
+            prefill: {
+                name: userData ? userData.name : '',
+                email: userData ? userData.email : ''
+            },
+            theme: { color: '#2874f0' },
+            modal: {
+                ondismiss: function() {
+                    // If payment modal is closed without payment, still place order (for testing)
+                    showToast('Placing test order...');
+                    placeOrderAPI(paymentMethod, totalAmount, subtotal, savings, 'TEST-' + Date.now());
+                }
+            }
+        };
+        
+        try {
+            const rzp = new Razorpay(options);
+            rzp.open();
+            
+            // Add listener for payment failure to still allow test orders
+            rzp.on('payment.failed', function(response) {
+                showToast('Test mode: placing order anyway...');
+                placeOrderAPI(paymentMethod, totalAmount, subtotal, savings, 'FAILED-' + Date.now());
+            });
+        } catch(e) {
+            // If Razorpay fails, place order anyway for testing
+            showToast('Placing test order...');
+            placeOrderAPI(paymentMethod, totalAmount, subtotal, savings, 'TEST-' + Date.now());
+        }
+    }
+    
+    function placeOrderAPI(paymentMethod, totalAmount, subtotal, savings, paymentId = null) {
+        showToast('Placing order...');
+        console.log('Placing order with:', { paymentMethod, totalAmount, subtotal, savings, paymentId });
+        
+        const token = localStorage.getItem('techshop_token');
+        const pid = paymentId || (paymentMethod.toUpperCase() + '-' + Date.now());
+        
+        const orderData = {
+            items: cart,
+            paymentMethod: paymentMethod,
+            subtotal: subtotal,
+            discount: savings,
+            shipping: 0,
+            totalAmount: totalAmount,
+            razorpayPaymentId: pid,
+            shippingAddress: addressData?.address || 'Test Address',
+            shippingCity: addressData?.city || 'Test City',
+            shippingState: addressData?.state || 'Test State',
+            shippingPincode: addressData?.pincode || '123456'
+        };
+        
+        console.log('Order data:', JSON.stringify(orderData));
+        
+        fetch('/api/orders', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': 'Bearer ' + token
+            },
+            body: JSON.stringify(orderData)
+        })
+        .then(res => {
+            console.log('Response status:', res.status);
+            return res.json();
+        })
+        .then(data => {
+            console.log('Order response:', data);
+            if (data.success) {
+                localStorage.removeItem('techshop_cart');
+                showToast('Order placed successfully! ID: ' + data.orderId);
+                setTimeout(() => {
+                    window.location.href = 'order-success.html';
+                }, 1500);
+            } else {
+                showToast(data.error || 'Order failed');
+            }
+        })
+        .catch(err => {
+            console.error('Order error:', err);
+            showToast('Error: ' + err.message);
+        });
+    }
+    
+    document.getElementById('cardNumber').addEventListener('input', function(e) {
+        let value = e.target.value.replace(/\s/g, '').replace(/\D/g, '');
+        e.target.value = value.match(/.{1,4}/g)?.join(' ') || value;
+    });
+    
+    document.getElementById('cardExpiry').addEventListener('input', function(e) {
+        let value = e.target.value.replace(/\D/g, '');
+        if (value.length >= 2) {
+            value = value.slice(0, 2) + '/' + value.slice(2, 4);
+        }
+        e.target.value = value;
+    });
+    
+    // Debug test order function
+    function debugTestOrder() {
+        const token = localStorage.getItem('techshop_token');
+        if (!token) {
+            showToast('Please login first');
+            return;
+        }
+        
+        loadCart();
+        if (cart.length === 0) {
+            showToast('Cart is empty - add products first');
+            return;
+        }
+        
+        const subtotal = getCartTotal();
+        placeOrderAPI('test', subtotal, 0, 0, 'DEBUG-' + Date.now());
+    }
+    
+    window.debugTestOrder = debugTestOrder;
+</script>
+
+</body>
+</html>

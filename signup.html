@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sign Up | Tech Shop</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Inter', sans-serif; background: linear-gradient(135deg, #d9e4f5 0%, #c1d3eb 100%); min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 24px; }
+        
+        .bg-blob { position: fixed; width: 300px; height: 300px; background: radial-gradient(circle, rgba(40,116,240,0.12) 0%, rgba(40,116,240,0) 70%); border-radius: 50%; z-index: 0; animation: floatBlob 14s infinite alternate ease-in-out; }
+        .blob1 { top: 5%; left: -5%; width: 400px; height: 400px; animation-duration: 20s; }
+        .blob2 { bottom: 0%; right: -5%; width: 350px; height: 350px; background: radial-gradient(circle, rgba(255,184,28,0.1) 0%, rgba(255,184,28,0) 70%); animation-duration: 16s; }
+        
+        @keyframes floatBlob { 0% { transform: translate(0, 0) scale(1); } 100% { transform: translate(40px, 25px) scale(1.1); } }
+        
+        .signup-container { width: 100%; max-width: 500px; z-index: 2; position: relative; animation: fadeScaleUp 0.5s cubic-bezier(0.2, 0.9, 0.4, 1.1); }
+        @keyframes fadeScaleUp { from { opacity: 0; transform: scale(0.96) translateY(20px); } to { opacity: 1; transform: scale(1) translateY(0); } }
+        
+        .signup-card { background: rgba(255, 255, 255, 0.98); backdrop-filter: blur(2px); border-radius: 2rem; padding: 2rem 2rem 2.2rem; box-shadow: 0 25px 45px -12px rgba(0, 0, 0, 0.25); border: 1px solid rgba(255,255,255,0.5); }
+        
+        .brand-header { text-align: center; margin-bottom: 1.5rem; }
+        .brand-logo { font-size: 2.2rem; font-weight: 800; background: linear-gradient(135deg, #2874f0, #0a46b3); -webkit-background-clip: text; background-clip: text; color: transparent; display: inline-flex; align-items: center; gap: 8px; font-family: 'Poppins', sans-serif; }
+        .brand-logo i { background: none; color: #ffb81c; font-size: 2rem; }
+        .tagline { color: #5a6874; font-size: 0.8rem; margin-top: 4px; }
+        
+        .welcome-text { font-size: 1.6rem; font-weight: 700; margin-bottom: 0.2rem; color: #1e293b; }
+        .welcome-sub { color: #5b6e8c; font-size: 0.85rem; margin-bottom: 1.5rem; }
+        
+        .input-group { margin-bottom: 1.2rem; position: relative; }
+        .input-group i { position: absolute; left: 16px; top: 50%; transform: translateY(-50%); color: #94a3b8; font-size: 1rem; }
+        .input-group input { width: 100%; padding: 12px 16px 12px 44px; font-size: 0.95rem; border: 1.5px solid #e2e8f0; border-radius: 60px; outline: none; font-family: 'Inter', sans-serif; background: #fefefe; transition: all 0.2s; }
+        .input-group input:focus { border-color: #2874f0; box-shadow: 0 0 0 3px rgba(40,116,240,0.1); }
+        
+        .row-flex { display: flex; gap: 12px; }
+        .row-flex .input-group { flex: 1; }
+        
+        .terms { display: flex; align-items: center; gap: 10px; margin: 1rem 0 1.2rem; font-size: 0.8rem; color: #475569; }
+        .terms input { width: 18px; height: 18px; cursor: pointer; }
+        .terms a { color: #2874f0; text-decoration: none; font-weight: 500; }
+        
+        .signup-btn { background: #2874f0; border: none; width: 100%; padding: 13px; border-radius: 60px; font-weight: 700; font-size: 1rem; color: white; cursor: pointer; transition: all 0.25s; display: flex; align-items: center; justify-content: center; gap: 10px; margin-bottom: 1.2rem; }
+        .signup-btn:hover { background: #1a5cd8; transform: translateY(-2px); }
+        .signup-btn:disabled { background: #94a3b8; cursor: not-allowed; transform: none; }
+        
+        .divider { display: flex; align-items: center; gap: 12px; color: #94a3b8; font-size: 0.7rem; margin: 0.8rem 0 1rem; }
+        .divider-line { flex: 1; height: 1px; background: #e2e8f0; }
+        
+        .social-signup { display: flex; gap: 16px; justify-content: center; margin-bottom: 1.5rem; }
+        .social-icon { width: 42px; height: 42px; background: #f1f5f9; border-radius: 50%; display: flex; align-items: center; justify-content: center; transition: 0.2s; cursor: pointer; color: #334155; font-size: 1.2rem; text-decoration: none; }
+        .social-icon:hover { background: #e6edf5; transform: translateY(-3px); }
+        
+        .login-prompt { text-align: center; font-size: 0.85rem; color: #475569; }
+        .login-prompt a { color: #2874f0; font-weight: 600; text-decoration: none; }
+        
+        .toast-msg { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%) scale(0.9); background: #1f2937; color: white; padding: 12px 24px; border-radius: 60px; font-size: 0.85rem; opacity: 0; transition: 0.2s; pointer-events: none; z-index: 200; }
+        .toast-msg.show { opacity: 1; transform: translateX(-50%) scale(1); }
+        
+        @media (max-width: 520px) { 
+            .signup-card { padding: 1.6rem 1.2rem 1.8rem; }
+            .row-flex { flex-direction: column; gap: 0; }
+        }
+    </style>
+</head>
+<body>
+    <div class="bg-blob blob1"></div>
+    <div class="bg-blob blob2"></div>
+
+    <div class="signup-container">
+        <div class="signup-card">
+            <div class="brand-header">
+                <div class="brand-logo"><i class="fas fa-store"></i> Tech Shop</div>
+                <div class="tagline">Join the shopping revolution</div>
+            </div>
+
+            <div class="welcome-text">Create account 🚀</div>
+            <div class="welcome-sub">Sign up to get exclusive deals</div>
+
+            <form id="signupForm">
+                <div class="row-flex">
+                    <div class="input-group">
+                        <i class="fas fa-user"></i>
+                        <input type="text" id="firstName" placeholder="First name" required>
+                    </div>
+                    <div class="input-group">
+                        <i class="fas fa-user-friends"></i>
+                        <input type="text" id="lastName" placeholder="Last name">
+                    </div>
+                </div>
+
+                <div class="input-group">
+                    <i class="fas fa-envelope"></i>
+                    <input type="email" id="email" placeholder="Email address" required autocomplete="email">
+                </div>
+
+                <div class="input-group">
+                    <i class="fas fa-phone-alt"></i>
+                    <input type="tel" id="phone" placeholder="Mobile number" maxlength="10">
+                </div>
+
+                <div class="input-group">
+                    <i class="fas fa-lock"></i>
+                    <input type="password" id="password" placeholder="Password" required>
+                </div>
+
+                <div class="input-group">
+                    <i class="fas fa-check-circle"></i>
+                    <input type="password" id="confirmPassword" placeholder="Confirm password" required>
+                </div>
+
+                <div class="terms">
+                    <input type="checkbox" id="termsCheckbox" required>
+                    <label for="termsCheckbox">I agree to the <a href="#">Terms</a> and <a href="#">Privacy Policy</a></label>
+                </div>
+
+                <button type="submit" class="signup-btn" id="signupBtn"><i class="fas fa-user-plus"></i> Sign Up</button>
+            </form>
+
+            <div class="divider"><div class="divider-line"></div><span>or sign up with</span><div class="divider-line"></div></div>
+
+            <div class="social-signup">
+                <a href="#" class="social-icon"><i class="fab fa-google"></i></a>
+                <a href="#" class="social-icon"><i class="fab fa-facebook-f"></i></a>
+                <a href="#" class="social-icon"><i class="fab fa-apple"></i></a>
+            </div>
+
+            <div class="login-prompt">Already have an account? <a href="login.html">Log in</a></div>
+        </div>
+    </div>
+
+    <div id="toastMsg" class="toast-msg">Account created!</div>
+
+    <script>
+        const signupForm = document.getElementById('signupForm');
+        const signupBtn = document.getElementById('signupBtn');
+        const toast = document.getElementById('toastMsg');
+        
+        function showToast(message, isError = false) {
+            toast.textContent = message;
+            toast.style.backgroundColor = isError ? '#b91c1c' : '#1f2937';
+            toast.classList.add('show');
+            setTimeout(() => toast.classList.remove('show'), 3000);
+        }
+        
+        signupForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const firstName = document.getElementById('firstName').value.trim();
+            const lastName = document.getElementById('lastName').value.trim();
+            const email = document.getElementById('email').value.trim();
+            const phone = document.getElementById('phone').value.trim();
+            const password = document.getElementById('password').value;
+            const confirmPwd = document.getElementById('confirmPassword').value;
+            const terms = document.getElementById('termsCheckbox').checked;
+            
+            if (!firstName) { showToast('Please enter your name', true); return; }
+            if (!email || !email.includes('@')) { showToast('Please enter valid email', true); return; }
+            if (phone && phone.length !== 10) { showToast('Please enter 10-digit mobile', true); return; }
+            if (password.length < 6) { showToast('Password must be 6+ characters', true); return; }
+            if (password !== confirmPwd) { showToast('Passwords do not match', true); return; }
+            if (!terms) { showToast('Please accept terms', true); return; }
+            
+            signupBtn.disabled = true;
+            signupBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Creating Account...';
+            
+            try {
+                const res = await fetch('/api/auth/signup', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ firstName, lastName, email, phone, password })
+                });
+                
+                const data = await res.json();
+                
+                if (data.success) {
+                    // Store temp token and email for OTP verification
+                    localStorage.setItem('techshop_temp_token', data.token);
+                    localStorage.setItem('techshop_pending_email', data.email);
+                    localStorage.setItem('techshop_otp_type', 'signup');
+                    
+                    showToast('Account created! Redirecting to verify...');
+                    setTimeout(() => window.location.href = 'otp.html', 1500);
+                } else {
+                    showToast(data.error || 'Signup failed', true);
+                }
+            } catch (error) {
+                showToast('Server error. Please try again.', true);
+            }
+            
+            signupBtn.disabled = false;
+            signupBtn.innerHTML = '<i class="fas fa-user-plus"></i> Sign Up';
+        });
+    </script>
+</body>
+</html>
