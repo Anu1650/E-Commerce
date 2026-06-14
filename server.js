@@ -1,6 +1,5 @@
 const express = require('express');
 const cors = require('cors');
-const mysql = require('mysql2/promise');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const nodemailer = require('nodemailer');
@@ -8,13 +7,21 @@ const { v4: uuidv4 } = require('uuid');
 const multer = require('multer');
 const fs = require('fs');
 const path = require('path');
+const Database = require('better-sqlite3');
 require('dotenv').config();
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 const JWT_SECRET = process.env.JWT_SECRET || 'techshop_secret_key_2024';
 
-// Email setup
+const dbPath = path.join(__dirname, 'data', 'techshop.db');
+if (!fs.existsSync(path.dirname(dbPath))) {
+    fs.mkdirSync(path.dirname(dbPath), { recursive: true });
+}
+const db = new Database(dbPath);
+db.pragma('journal_mode = WAL');
+db.pragma('foreign_keys = ON');
+
 const emailTransporter = nodemailer.createTransport({
     service: 'gmail',
     auth: {
@@ -23,7 +30,6 @@ const emailTransporter = nodemailer.createTransport({
     }
 });
 
-// Send order confirmation email
 async function sendOrderConfirmationEmail(email, orderId, items, total) {
     const itemList = items.map(i => `<li>${i.product_name} x${i.quantity} - ₹${i.product_price * i.quantity}</li>`).join('');
     const mailOptions = {
@@ -35,16 +41,12 @@ async function sendOrderConfirmationEmail(email, orderId, items, total) {
                 <h2 style="color: #2874f0;">✅ Order Confirmed!</h2>
                 <p>Dear Customer,</p>
                 <p>Your order <strong>${orderId}</strong> has been confirmed successfully.</p>
-                
                 <h3>Order Details:</h3>
                 <ul>${itemList}</ul>
-                
                 <p><strong>Total: ₹${total}</strong></p>
-                
                 <h3>What's Next?</h3>
                 <p>📦 Your order is being processed and will be shipped soon!</p>
                 <p>You can track your order status in your account.</p>
-                
                 <p style="margin-top: 20px; color: #6b7280;">Thank you for shopping with Tech Shop!</p>
             </div>
         `
@@ -57,7 +59,6 @@ async function sendOrderConfirmationEmail(email, orderId, items, total) {
     }
 }
 
-// Send order cancellation email
 async function sendOrderCancellationEmail(email, orderId, reason, refundAmount) {
     const mailOptions = {
         from: 'Tech Shop <aniketigade@gmail.com>',
@@ -68,14 +69,11 @@ async function sendOrderCancellationEmail(email, orderId, reason, refundAmount) 
                 <h2 style="color: #dc2626;">❌ Order Cancelled</h2>
                 <p>Dear Customer,</p>
                 <p>Your order <strong>${orderId}</strong> has been cancelled as per your request.</p>
-                
                 <h3>Cancellation Details:</h3>
                 <p><strong>Refund Amount: ₹${refundAmount}</strong></p>
                 <p>Reason: ${reason || 'Not specified'}</p>
-                
                 <h3>Refund Information:</h3>
                 <p>💰 The refund amount will be credited to your original payment method within <strong>5-7 business days</strong>.</p>
-                
                 <p style="margin-top: 20px; color: #6b7280;">Thank you for shopping with Tech Shop!</p>
                 <p>We hope to see you again soon!</p>
             </div>
@@ -89,162 +87,129 @@ async function sendOrderCancellationEmail(email, orderId, reason, refundAmount) 
     }
 }
 
-// Middleware
 app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.static('.'));
 
-// MySQL Connection
-const pool = mysql.createPool({
-    host: process.env.DB_HOST || 'localhost',
-    user: process.env.DB_USER || 'root',
-    password: process.env.DB_PASSWORD || 'Aniket@2006',
-    database: process.env.DB_NAME || 'techshop',
-    waitForConnections: true,
-    connectionLimit: 10,
-    ssl: process.env.DB_SSL === 'true' ? { rejectUnauthorized: false } : undefined
-});
-
 console.log('🔄 Starting Tech Shop Server...');
 
-// Initialize Database
-async function initDatabase() {
-    try {
-        const conn = await mysql.createConnection({
-            host: process.env.DB_HOST || 'localhost',
-            user: process.env.DB_USER || 'root',
-            password: process.env.DB_PASSWORD || 'Aniket@2006'
-        });
-        await conn.query('CREATE DATABASE IF NOT EXISTS techshop');
-        await conn.end();
+function initDatabase() {
+    db.exec(`
+        CREATE TABLE IF NOT EXISTS users (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            email TEXT UNIQUE NOT NULL,
+            phone TEXT,
+            password TEXT NOT NULL,
+            first_name TEXT,
+            last_name TEXT,
+            address TEXT,
+            city TEXT,
+            state TEXT,
+            pincode TEXT,
+            is_verified INTEGER DEFAULT 0,
+            created_at TEXT DEFAULT (datetime('now'))
+        )
+    `);
 
-        await pool.query(`
-            CREATE TABLE IF NOT EXISTS users (
-                id INT AUTO_INCREMENT PRIMARY KEY,
-                email VARCHAR(255) UNIQUE NOT NULL,
-                phone VARCHAR(15),
-                password VARCHAR(255) NOT NULL,
-                first_name VARCHAR(100),
-                last_name VARCHAR(100),
-                address TEXT,
-                city VARCHAR(100),
-                state VARCHAR(100),
-                pincode VARCHAR(10),
-                is_verified BOOLEAN DEFAULT FALSE,
-                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-            )
-        `);
+    db.exec(`
+        CREATE TABLE IF NOT EXISTS otp_verifications (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            email TEXT NOT NULL,
+            otp TEXT NOT NULL,
+            type TEXT NOT NULL,
+            expires_at TEXT NOT NULL,
+            created_at TEXT DEFAULT (datetime('now'))
+        )
+    `);
 
-        await pool.query(`
-            CREATE TABLE IF NOT EXISTS otp_verifications (
-                id INT AUTO_INCREMENT PRIMARY KEY,
-                email VARCHAR(255) NOT NULL,
-                otp VARCHAR(6) NOT NULL,
-                type VARCHAR(20) NOT NULL,
-                expires_at TIMESTAMP NOT NULL,
-                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-            )
-        `);
+    db.exec(`
+        CREATE TABLE IF NOT EXISTS orders (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            user_id INTEGER NOT NULL,
+            order_id TEXT UNIQUE NOT NULL,
+            subtotal REAL NOT NULL,
+            discount REAL DEFAULT 0,
+            shipping REAL DEFAULT 0,
+            total_amount REAL NOT NULL,
+            payment_method TEXT,
+            payment_status TEXT DEFAULT 'pending',
+            order_status TEXT DEFAULT 'processing',
+            delivery_date TEXT,
+            shipping_address TEXT,
+            shipping_city TEXT,
+            shipping_state TEXT,
+            shipping_pincode TEXT,
+            created_at TEXT DEFAULT (datetime('now')),
+            FOREIGN KEY (user_id) REFERENCES users(id)
+        )
+    `);
 
-        await pool.query(`
-            CREATE TABLE IF NOT EXISTS orders (
-                id INT AUTO_INCREMENT PRIMARY KEY,
-                user_id INT NOT NULL,
-                order_id VARCHAR(50) UNIQUE NOT NULL,
-                subtotal DECIMAL(10,2) NOT NULL,
-                discount DECIMAL(10,2) DEFAULT 0,
-                shipping DECIMAL(10,2) DEFAULT 0,
-                total_amount DECIMAL(10,2) NOT NULL,
-                payment_method VARCHAR(50),
-                payment_status VARCHAR(20) DEFAULT 'pending',
-                order_status VARCHAR(20) DEFAULT 'processing',
-                delivery_date DATE,
-                shipping_address TEXT,
-                shipping_city VARCHAR(100),
-                shipping_state VARCHAR(100),
-                shipping_pincode VARCHAR(10),
-                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                FOREIGN KEY (user_id) REFERENCES users(id)
-            )
-        `);
-        
-        // Add shipping columns if they don't exist
-        await pool.query(`ALTER TABLE orders ADD COLUMN shipping_address TEXT AFTER delivery_date`).catch(() => {});
-        await pool.query(`ALTER TABLE orders ADD COLUMN shipping_city VARCHAR(100) AFTER shipping_address`).catch(() => {});
-        await pool.query(`ALTER TABLE orders ADD COLUMN shipping_state VARCHAR(100) AFTER shipping_city`).catch(() => {});
-        await pool.query(`ALTER TABLE orders ADD COLUMN shipping_pincode VARCHAR(10) AFTER shipping_state`).catch(() => {});
+    db.exec(`
+        CREATE TABLE IF NOT EXISTS order_items (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            order_id INTEGER NOT NULL,
+            product_name TEXT NOT NULL,
+            product_price REAL NOT NULL,
+            original_price REAL,
+            quantity INTEGER NOT NULL,
+            category TEXT,
+            image_url TEXT,
+            FOREIGN KEY (order_id) REFERENCES orders(id)
+        )
+    `);
 
-        await pool.query(`
-            CREATE TABLE IF NOT EXISTS order_items (
-                id INT AUTO_INCREMENT PRIMARY KEY,
-                order_id INT NOT NULL,
-                product_name VARCHAR(255) NOT NULL,
-                product_price DECIMAL(10,2) NOT NULL,
-                original_price DECIMAL(10,2),
-                quantity INT NOT NULL,
-                category VARCHAR(100),
-                image_url VARCHAR(500),
-                FOREIGN KEY (order_id) REFERENCES orders(id)
-            )
-        `);
+    db.exec(`
+        CREATE TABLE IF NOT EXISTS order_tracking (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            order_id INTEGER NOT NULL,
+            status TEXT NOT NULL,
+            description TEXT,
+            created_at TEXT DEFAULT (datetime('now'))
+        )
+    `);
 
-await pool.query(`
-            CREATE TABLE IF NOT EXISTS order_tracking (
-                id INT AUTO_INCREMENT PRIMARY KEY,
-                order_id INT NOT NULL,
-                status VARCHAR(50) NOT NULL,
-                description TEXT,
-                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-            )
-        `);
+    db.exec(`
+        CREATE TABLE IF NOT EXISTS cart_items (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            user_id INTEGER NOT NULL,
+            product_id INTEGER NOT NULL,
+            product_name TEXT NOT NULL,
+            product_price REAL NOT NULL,
+            product_image TEXT,
+            quantity INTEGER DEFAULT 1,
+            category TEXT,
+            created_at TEXT DEFAULT (datetime('now')),
+            FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+            UNIQUE(user_id, product_id)
+        )
+    `);
 
-        await pool.query(`
-            CREATE TABLE IF NOT EXISTS cart_items (
-                id INT AUTO_INCREMENT PRIMARY KEY,
-                user_id INT NOT NULL,
-                product_id INT NOT NULL,
-                product_name VARCHAR(255) NOT NULL,
-                product_price DECIMAL(10,2) NOT NULL,
-                product_image VARCHAR(500),
-                quantity INT DEFAULT 1,
-                category VARCHAR(50),
-                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
-                UNIQUE KEY unique_user_product (user_id, product_id)
-            )
-        `);
+    db.exec(`
+        CREATE TABLE IF NOT EXISTS wishlist_items (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            user_id INTEGER NOT NULL,
+            product_id INTEGER NOT NULL,
+            product_name TEXT NOT NULL,
+            product_price REAL NOT NULL,
+            product_image TEXT,
+            category TEXT,
+            created_at TEXT DEFAULT (datetime('now')),
+            FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+            UNIQUE(user_id, product_id)
+        )
+    `);
 
-        await pool.query(`
-            CREATE TABLE IF NOT EXISTS wishlist_items (
-                id INT AUTO_INCREMENT PRIMARY KEY,
-                user_id INT NOT NULL,
-                product_id INT NOT NULL,
-                product_name VARCHAR(255) NOT NULL,
-                product_price DECIMAL(10,2) NOT NULL,
-                product_image VARCHAR(500),
-                category VARCHAR(50),
-                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
-                UNIQUE KEY unique_user_wishlist (user_id, product_id)
-            )
-        `);
-
-        console.log('✅ Database & tables created!');
-        return true;
-    } catch (error) {
-        console.error('❌ Database error:', error.message);
-        return false;
-    }
+    console.log('✅ Database & tables created!');
+    return true;
 }
 
-// Auth Middleware
 function authenticateToken(req, res, next) {
     const authHeader = req.headers['authorization'];
     const token = authHeader && authHeader.split(' ')[1];
     console.log('Auth check - Token:', token ? token.substring(0, 20) + '...' : 'none');
     if (!token) return res.status(401).json({ error: 'Login required' });
-    
+
     jwt.verify(token, JWT_SECRET, (err, user) => {
         console.log('JWT verify result:', err ? err.message : 'success', user);
         if (err) return res.status(403).json({ error: 'Session expired' });
@@ -253,46 +218,41 @@ function authenticateToken(req, res, next) {
     });
 }
 
-// Generate OTP
 function generateOTP() {
     return Math.floor(100000 + Math.random() * 900000).toString();
 }
 
-// API Routes
-
-// Cart APIs - Get user's cart
-app.get('/api/cart', authenticateToken, async (req, res) => {
+// Cart APIs
+app.get('/api/cart', authenticateToken, (req, res) => {
     try {
-        const [items] = await pool.query('SELECT * FROM cart_items WHERE user_id = ? ORDER BY created_at DESC', [req.user.id]);
+        const items = db.prepare('SELECT * FROM cart_items WHERE user_id = ? ORDER BY created_at DESC').all(req.user.id);
         res.json({ success: true, cart: items });
     } catch (error) {
         res.status(500).json({ error: 'Failed to fetch cart' });
     }
 });
 
-// Add to cart
-app.post('/api/cart', authenticateToken, async (req, res) => {
+app.post('/api/cart', authenticateToken, (req, res) => {
     try {
         const { productId, productName, productPrice, productImage, category, quantity } = req.body;
-        await pool.query(`
+        db.prepare(`
             INSERT INTO cart_items (user_id, product_id, product_name, product_price, product_image, category, quantity)
             VALUES (?, ?, ?, ?, ?, ?, ?)
-            ON DUPLICATE KEY UPDATE quantity = quantity + 1
-        `, [req.user.id, productId, productName, productPrice, productImage, category, quantity || 1]);
+            ON CONFLICT(user_id, product_id) DO UPDATE SET quantity = quantity + 1
+        `).run(req.user.id, productId, productName, productPrice, productImage, category, quantity || 1);
         res.json({ success: true, message: 'Added to cart' });
     } catch (error) {
         res.status(500).json({ error: 'Failed to add to cart' });
     }
 });
 
-// Update cart item quantity
-app.put('/api/cart/:productId', authenticateToken, async (req, res) => {
+app.put('/api/cart/:productId', authenticateToken, (req, res) => {
     try {
         const { quantity } = req.body;
         if (quantity <= 0) {
-            await pool.query('DELETE FROM cart_items WHERE user_id = ? AND product_id = ?', [req.user.id, req.params.productId]);
+            db.prepare('DELETE FROM cart_items WHERE user_id = ? AND product_id = ?').run(req.user.id, req.params.productId);
         } else {
-            await pool.query('UPDATE cart_items SET quantity = ? WHERE user_id = ? AND product_id = ?', [quantity, req.user.id, req.params.productId]);
+            db.prepare('UPDATE cart_items SET quantity = ? WHERE user_id = ? AND product_id = ?').run(quantity, req.user.id, req.params.productId);
         }
         res.json({ success: true });
     } catch (error) {
@@ -300,70 +260,66 @@ app.put('/api/cart/:productId', authenticateToken, async (req, res) => {
     }
 });
 
-// Remove from cart
-app.delete('/api/cart/:productId', authenticateToken, async (req, res) => {
+app.delete('/api/cart/:productId', authenticateToken, (req, res) => {
     try {
-        await pool.query('DELETE FROM cart_items WHERE user_id = ? AND product_id = ?', [req.user.id, req.params.productId]);
+        db.prepare('DELETE FROM cart_items WHERE user_id = ? AND product_id = ?').run(req.user.id, req.params.productId);
         res.json({ success: true, message: 'Removed from cart' });
     } catch (error) {
         res.status(500).json({ error: 'Failed to remove from cart' });
     }
 });
 
-// Clear cart
-app.delete('/api/cart', authenticateToken, async (req, res) => {
+app.delete('/api/cart', authenticateToken, (req, res) => {
     try {
-        await pool.query('DELETE FROM cart_items WHERE user_id = ?', [req.user.id]);
+        db.prepare('DELETE FROM cart_items WHERE user_id = ?').run(req.user.id);
         res.json({ success: true, message: 'Cart cleared' });
     } catch (error) {
         res.status(500).json({ error: 'Failed to clear cart' });
     }
 });
 
-// Wishlist APIs - Get user's wishlist
-app.get('/api/wishlist', authenticateToken, async (req, res) => {
+// Wishlist APIs
+app.get('/api/wishlist', authenticateToken, (req, res) => {
     try {
-        const [items] = await pool.query('SELECT * FROM wishlist_items WHERE user_id = ? ORDER BY created_at DESC', [req.user.id]);
+        const items = db.prepare('SELECT * FROM wishlist_items WHERE user_id = ? ORDER BY created_at DESC').all(req.user.id);
         res.json({ success: true, wishlist: items });
     } catch (error) {
         res.status(500).json({ error: 'Failed to fetch wishlist' });
     }
 });
 
-// Add to wishlist
-app.post('/api/wishlist', authenticateToken, async (req, res) => {
+app.post('/api/wishlist', authenticateToken, (req, res) => {
     try {
         const { productId, productName, productPrice, productImage, category } = req.body;
-        await pool.query(`
+        db.prepare(`
             INSERT INTO wishlist_items (user_id, product_id, product_name, product_price, product_image, category)
             VALUES (?, ?, ?, ?, ?, ?)
-            ON DUPLICATE KEY UPDATE product_name = product_name
-        `, [req.user.id, productId, productName, productPrice, productImage, category]);
+            ON CONFLICT(user_id, product_id) DO UPDATE SET product_name = product_name
+        `).run(req.user.id, productId, productName, productPrice, productImage, category);
         res.json({ success: true, message: 'Added to wishlist' });
     } catch (error) {
         res.status(500).json({ error: 'Failed to add to wishlist' });
     }
 });
 
-// Remove from wishlist
-app.delete('/api/wishlist/:productId', authenticateToken, async (req, res) => {
+app.delete('/api/wishlist/:productId', authenticateToken, (req, res) => {
     try {
-        await pool.query('DELETE FROM wishlist_items WHERE user_id = ? AND product_id = ?', [req.user.id, req.params.productId]);
+        db.prepare('DELETE FROM wishlist_items WHERE user_id = ? AND product_id = ?').run(req.user.id, req.params.productId);
         res.json({ success: true, message: 'Removed from wishlist' });
     } catch (error) {
         res.status(500).json({ error: 'Failed to remove from wishlist' });
     }
 });
+
 app.get('/api/health', (req, res) => res.json({ status: 'ok', time: new Date() }));
 
-// Check login status
-app.get('/api/auth/check', authenticateToken, async (req, res) => {
+app.get('/api/auth/check', authenticateToken, (req, res) => {
     try {
-        const [users] = await pool.query('SELECT id, email, first_name, last_name, phone FROM users WHERE id = ?', [req.user.id]);
-        if (users.length > 0) {
-            res.json({ 
-                isLoggedIn: true, 
-                user: { id: users[0].id, email: users[0].email, name: `${users[0].first_name || ''} ${users[0].last_name || ''}`.trim(), phone: users[0].phone }
+        const user = db.prepare('SELECT id, email, first_name, last_name, phone FROM users WHERE id = ?').get(req.user.id);
+        if (user) {
+            res.json({
+                isLoggedIn: true,
+                user: { id: user.id, email: user.email, name: `${user.first_name || ''} ${user.last_name || ''}`.trim(), phone: user.phone }
             });
         } else res.status(404).json({ isLoggedIn: false });
     } catch (error) { res.status(500).json({ error: 'Server error' }); }
@@ -373,25 +329,22 @@ app.get('/api/auth/check', authenticateToken, async (req, res) => {
 app.post('/api/auth/signup', async (req, res) => {
     try {
         const { firstName, lastName, email, phone, password } = req.body;
-        
+
         if (!firstName || !email || !password) {
             return res.status(400).json({ error: 'First name, email and password are required' });
         }
 
-        const [existing] = await pool.query('SELECT id FROM users WHERE email = ?', [email]);
-        if (existing.length > 0) {
+        const existing = db.prepare('SELECT id FROM users WHERE email = ?').get(email);
+        if (existing) {
             return res.status(400).json({ error: 'Email already registered. Please login.' });
         }
 
         const hashedPassword = await bcrypt.hash(password, 10);
-        await pool.query('INSERT INTO users (first_name, last_name, email, phone, password) VALUES (?, ?, ?, ?, ?)', 
-            [firstName, lastName || '', email, phone || '', hashedPassword]);
+        db.prepare('INSERT INTO users (first_name, last_name, email, phone, password) VALUES (?, ?, ?, ?, ?)').run(firstName, lastName || '', email, phone || '', hashedPassword);
 
         const otp = generateOTP();
-        await pool.query('INSERT INTO otp_verifications (email, otp, type, expires_at) VALUES (?, ?, ?, ?)', 
-            [email, otp, 'signup', new Date(Date.now() + 10 * 60000)]);
-        
-        // Send email
+        db.prepare('INSERT INTO otp_verifications (email, otp, type, expires_at) VALUES (?, ?, ?, ?)').run(email, otp, 'signup', new Date(Date.now() + 10 * 60000).toISOString());
+
         emailTransporter.sendMail({
             from: 'Tech Shop <aniketigade@gmail.com>',
             to: email,
@@ -421,26 +374,24 @@ app.post('/api/auth/signup', async (req, res) => {
 app.post('/api/auth/login', async (req, res) => {
     try {
         const { email, password } = req.body;
-        
+
         if (!email || !password) {
             return res.status(400).json({ error: 'Email and password required' });
         }
 
-        const [users] = await pool.query('SELECT * FROM users WHERE email = ?', [email]);
-        if (users.length === 0) {
+        const userRow = db.prepare('SELECT * FROM users WHERE email = ?').get(email);
+        if (!userRow) {
             return res.status(401).json({ error: 'Invalid email or password' });
         }
 
-        const validPassword = await bcrypt.compare(password, users[0].password);
+        const validPassword = await bcrypt.compare(password, userRow.password);
         if (!validPassword) {
             return res.status(401).json({ error: 'Invalid email or password' });
         }
 
         const otp = generateOTP();
-        await pool.query('INSERT INTO otp_verifications (email, otp, type, expires_at) VALUES (?, ?, ?, ?)', 
-            [email, otp, 'login', new Date(Date.now() + 10 * 60000)]);
-        
-        // Send email
+        db.prepare('INSERT INTO otp_verifications (email, otp, type, expires_at) VALUES (?, ?, ?, ?)').run(email, otp, 'login', new Date(Date.now() + 10 * 60000).toISOString());
+
         emailTransporter.sendMail({
             from: 'Tech Shop <aniketigade@gmail.com>',
             to: email,
@@ -470,34 +421,33 @@ app.post('/api/auth/login', async (req, res) => {
 app.post('/api/auth/verify-otp', async (req, res) => {
     try {
         const { email, otp, type } = req.body;
-        
+
         if (!email || !otp) {
             return res.status(400).json({ error: 'Email and OTP required' });
         }
 
-        const [otps] = await pool.query('SELECT * FROM otp_verifications WHERE email = ? AND type = ? AND expires_at > NOW() ORDER BY created_at DESC LIMIT 1', [email, type]);
-        
-        if (otps.length === 0) {
+        const otpRow = db.prepare("SELECT * FROM otp_verifications WHERE email = ? AND type = ? AND expires_at > datetime('now') ORDER BY created_at DESC LIMIT 1").get(email, type);
+
+        if (!otpRow) {
             return res.status(400).json({ error: 'Invalid or expired OTP. Please request a new one.' });
         }
-        
-        if (otps[0].otp !== otp) {
+
+        if (otpRow.otp !== otp) {
             return res.status(400).json({ error: 'Invalid OTP' });
         }
 
-        await pool.query('DELETE FROM otp_verifications WHERE id = ?', [otps[0].id]);
-        
+        db.prepare('DELETE FROM otp_verifications WHERE id = ?').run(otpRow.id);
+
         if (type === 'signup') {
-            await pool.query('UPDATE users SET is_verified = TRUE WHERE email = ?', [email]);
+            db.prepare('UPDATE users SET is_verified = 1 WHERE email = ?').run(email);
         }
 
-        const [users] = await pool.query('SELECT id, email, first_name, last_name, phone FROM users WHERE email = ?', [email]);
-        
-        if (users.length === 0) {
+        const user = db.prepare('SELECT id, email, first_name, last_name, phone FROM users WHERE email = ?').get(email);
+
+        if (!user) {
             return res.status(404).json({ error: 'User not found' });
         }
 
-        const user = users[0];
         const token = jwt.sign({ id: user.id, email: user.email }, JWT_SECRET, { expiresIn: '7d' });
 
         res.json({
@@ -513,18 +463,17 @@ app.post('/api/auth/verify-otp', async (req, res) => {
 });
 
 // Resend OTP
-app.post('/api/auth/resend-otp', async (req, res) => {
+app.post('/api/auth/resend-otp', (req, res) => {
     try {
         const { email, type } = req.body;
-        
-        await pool.query('DELETE FROM otp_verifications WHERE email = ? AND type = ?', [email, type]);
-        
+
+        db.prepare('DELETE FROM otp_verifications WHERE email = ? AND type = ?').run(email, type);
+
         const otp = generateOTP();
-        await pool.query('INSERT INTO otp_verifications (email, otp, type, expires_at) VALUES (?, ?, ?, ?)', 
-            [email, otp, type, new Date(Date.now() + 10 * 60000)]);
-        
+        db.prepare('INSERT INTO otp_verifications (email, otp, type, expires_at) VALUES (?, ?, ?, ?)').run(email, otp, type, new Date(Date.now() + 10 * 60000).toISOString());
+
         console.log('\n📧 New OTP (' + email + '): ' + otp + '\n');
-        
+
         res.json({ success: true, message: 'OTP resent' });
     } catch (error) {
         res.status(500).json({ error: 'Failed to resend OTP' });
@@ -532,42 +481,40 @@ app.post('/api/auth/resend-otp', async (req, res) => {
 });
 
 // Create Order
-app.post('/api/orders', authenticateToken, async (req, res) => {
+app.post('/api/orders', authenticateToken, (req, res) => {
     try {
         const { items, paymentMethod, subtotal, discount, shipping, totalAmount, shippingAddress, shippingCity, shippingState, shippingPincode } = req.body;
-        
+
         if (!items || items.length === 0) {
             return res.status(400).json({ error: 'Cart is empty' });
         }
-        
+
         if (!shippingAddress || !shippingPincode) {
             return res.status(400).json({ error: 'Delivery address required' });
         }
-        
-        const orderId = 'TS' + Date.now();
-        const deliveryDate = new Date(Date.now() + 5 * 24 * 60 * 60 * 1000);
 
-        const [result] = await pool.query(
-            'INSERT INTO orders (user_id, order_id, subtotal, discount, shipping, total_amount, payment_method, payment_status, order_status, delivery_date, shipping_address, shipping_city, shipping_state, shipping_pincode) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
-            [req.user.id, orderId, subtotal || totalAmount, discount || 0, shipping || 0, totalAmount, paymentMethod, 'completed', 'confirmed', deliveryDate, shippingAddress, shippingCity, shippingState, shippingPincode]
+        const orderId = 'TS' + Date.now();
+        const deliveryDate = new Date(Date.now() + 5 * 24 * 60 * 60 * 1000).toISOString();
+
+        const result = db.prepare(
+            'INSERT INTO orders (user_id, order_id, subtotal, discount, shipping, total_amount, payment_method, payment_status, order_status, delivery_date, shipping_address, shipping_city, shipping_state, shipping_pincode) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)'
+        ).run(req.user.id, orderId, subtotal || totalAmount, discount || 0, shipping || 0, totalAmount, paymentMethod, 'completed', 'confirmed', deliveryDate, shippingAddress, shippingCity, shippingState, shippingPincode);
+
+        const dbOrderId = result.lastInsertRowid;
+
+        const insertItem = db.prepare(
+            'INSERT INTO order_items (order_id, product_name, product_price, original_price, quantity, category, image_url) VALUES (?, ?, ?, ?, ?, ?, ?)'
         );
 
-        const dbOrderId = result.insertId;
-
         for (const item of items) {
-            await pool.query(
-                'INSERT INTO order_items (order_id, product_name, product_price, original_price, quantity, category, image_url) VALUES (?, ?, ?, ?, ?, ?, ?)',
-                [dbOrderId, item.name, item.price, item.originalPrice || item.price, item.quantity, item.category, item.image || '']
-            );
+            insertItem.run(dbOrderId, item.name, item.price, item.originalPrice || item.price, item.quantity, item.category, item.image || '');
         }
 
-        await pool.query('INSERT INTO order_tracking (order_id, status, description) VALUES (?, ?, ?)', 
-            [dbOrderId, 'confirmed', 'Order confirmed and being processed']);
+        db.prepare('INSERT INTO order_tracking (order_id, status, description) VALUES (?, ?, ?)').run(dbOrderId, 'confirmed', 'Order confirmed and being processed');
 
-        // Send confirmation email
-        const [user] = await pool.query('SELECT email FROM users WHERE id = ?', [req.user.id]);
-        if (user.length > 0) {
-            sendOrderConfirmationEmail(user[0].email, orderId, items, totalAmount);
+        const user = db.prepare('SELECT email FROM users WHERE id = ?').get(req.user.id);
+        if (user) {
+            sendOrderConfirmationEmail(user.email, orderId, items, totalAmount);
         }
 
         res.json({ success: true, orderId, message: 'Order placed successfully!' });
@@ -578,15 +525,13 @@ app.post('/api/orders', authenticateToken, async (req, res) => {
 });
 
 // Get Orders
-app.get('/api/orders', authenticateToken, async (req, res) => {
+app.get('/api/orders', authenticateToken, (req, res) => {
     try {
-        const [orders] = await pool.query('SELECT * FROM orders WHERE user_id = ? ORDER BY created_at DESC', [req.user.id]);
-        
+        const orders = db.prepare('SELECT * FROM orders WHERE user_id = ? ORDER BY created_at DESC').all(req.user.id);
+
         for (const order of orders) {
-            const [items] = await pool.query('SELECT * FROM order_items WHERE order_id = ?', [order.id]);
-            const [tracking] = await pool.query('SELECT * FROM order_tracking WHERE order_id = ? ORDER BY created_at ASC', [order.id]);
-            order.items = items;
-            order.tracking = tracking;
+            order.items = db.prepare('SELECT * FROM order_items WHERE order_id = ?').all(order.id);
+            order.tracking = db.prepare('SELECT * FROM order_tracking WHERE order_id = ? ORDER BY created_at ASC').all(order.id);
         }
 
         res.json({ orders });
@@ -597,29 +542,27 @@ app.get('/api/orders', authenticateToken, async (req, res) => {
 });
 
 // Cancel Order
-app.post('/api/orders/:orderId/cancel', authenticateToken, async (req, res) => {
+app.post('/api/orders/:orderId/cancel', authenticateToken, (req, res) => {
     try {
         const { orderId } = req.params;
         const { reason } = req.body;
 
-        const [orders] = await pool.query('SELECT * FROM orders WHERE order_id = ? AND user_id = ?', [orderId, req.user.id]);
-        
-        if (orders.length === 0) {
+        const order = db.prepare('SELECT * FROM orders WHERE order_id = ? AND user_id = ?').get(orderId, req.user.id);
+
+        if (!order) {
             return res.status(404).json({ error: 'Order not found' });
         }
 
-        const order = orders[0];
         if (['delivered', 'cancelled', 'returned'].includes(order.order_status)) {
             return res.status(400).json({ error: 'Cannot cancel this order' });
         }
 
-        await pool.query('UPDATE orders SET order_status = ?, payment_status = ? WHERE id = ?', ['cancelled', 'refunded', order.id]);
-        await pool.query('INSERT INTO order_tracking (order_id, status, description) VALUES (?, ?, ?)', [order.id, 'cancelled', reason || 'Order cancelled by user']);
+        db.prepare("UPDATE orders SET order_status = 'cancelled', payment_status = 'refunded' WHERE id = ?").run(order.id);
+        db.prepare("INSERT INTO order_tracking (order_id, status, description) VALUES (?, 'cancelled', ?)").run(order.id, reason || 'Order cancelled by user');
 
-        // Send cancellation email
-        const [user] = await pool.query('SELECT email FROM users WHERE id = ?', [req.user.id]);
-        if (user.length > 0) {
-            sendOrderCancellationEmail(user[0].email, orderId, reason, order.total_amount);
+        const user = db.prepare('SELECT email FROM users WHERE id = ?').get(req.user.id);
+        if (user) {
+            sendOrderCancellationEmail(user.email, orderId, reason, order.total_amount);
         }
 
         res.json({ success: true, message: 'Order cancelled successfully' });
@@ -629,24 +572,23 @@ app.post('/api/orders/:orderId/cancel', authenticateToken, async (req, res) => {
 });
 
 // Return Order
-app.post('/api/orders/:orderId/return', authenticateToken, async (req, res) => {
+app.post('/api/orders/:orderId/return', authenticateToken, (req, res) => {
     try {
         const { orderId } = req.params;
         const { reason } = req.body;
 
-        const [orders] = await pool.query('SELECT * FROM orders WHERE order_id = ? AND user_id = ?', [orderId, req.user.id]);
-        
-        if (orders.length === 0) {
+        const order = db.prepare('SELECT * FROM orders WHERE order_id = ? AND user_id = ?').get(orderId, req.user.id);
+
+        if (!order) {
             return res.status(404).json({ error: 'Order not found' });
         }
 
-        const order = orders[0];
         if (order.order_status !== 'delivered') {
             return res.status(400).json({ error: 'Only delivered orders can be returned' });
         }
 
-        await pool.query('UPDATE orders SET order_status = ?, payment_status = ? WHERE id = ?', ['returned', 'refunded', order.id]);
-        await pool.query('INSERT INTO order_tracking (order_id, status, description) VALUES (?, ?, ?)', [order.id, 'returned', reason || 'Return requested']);
+        db.prepare("UPDATE orders SET order_status = 'returned', payment_status = 'refunded' WHERE id = ?").run(order.id);
+        db.prepare("INSERT INTO order_tracking (order_id, status, description) VALUES (?, 'returned', ?)").run(order.id, reason || 'Return requested');
 
         res.json({ success: true, message: 'Return request submitted' });
     } catch (error) {
@@ -654,24 +596,18 @@ app.post('/api/orders/:orderId/return', authenticateToken, async (req, res) => {
     }
 });
 
-// ==================== USER PROFILE ROUTES ====================
-
-// Get full user profile
-app.get('/api/user/profile', authenticateToken, async (req, res) => {
+// User Profile
+app.get('/api/user/profile', authenticateToken, (req, res) => {
     console.log('Profile request for user id:', req.user.id);
     try {
-        const [users] = await pool.query(
-            'SELECT id, email, first_name, last_name, phone, address, city, state, pincode, is_verified, created_at FROM users WHERE id = ?',
-            [req.user.id]
-        );
-        
-        console.log('Users found:', users.length);
-        
-        if (users.length === 0) {
+        const user = db.prepare('SELECT id, email, first_name, last_name, phone, address, city, state, pincode, is_verified, created_at FROM users WHERE id = ?').get(req.user.id);
+
+        console.log('User found:', !!user);
+
+        if (!user) {
             return res.status(404).json({ error: 'User not found' });
         }
-        
-        const user = users[0];
+
         res.json({
             success: true,
             user: {
@@ -685,7 +621,7 @@ app.get('/api/user/profile', authenticateToken, async (req, res) => {
                 city: user.city || '',
                 state: user.state || '',
                 pincode: user.pincode || '',
-                isVerified: user.is_verified,
+                isVerified: !!user.is_verified,
                 createdAt: user.created_at
             }
         });
@@ -695,16 +631,12 @@ app.get('/api/user/profile', authenticateToken, async (req, res) => {
     }
 });
 
-// Update user profile
-app.put('/api/user/profile', authenticateToken, async (req, res) => {
+app.put('/api/user/profile', authenticateToken, (req, res) => {
     try {
         const { firstName, lastName, phone, address, city, state, pincode } = req.body;
-        
-        await pool.query(
-            'UPDATE users SET first_name = ?, last_name = ?, phone = ?, address = ?, city = ?, state = ?, pincode = ? WHERE id = ?',
-            [firstName || '', lastName || '', phone || '', address || '', city || '', state || '', pincode || '', req.user.id]
-        );
-        
+
+        db.prepare('UPDATE users SET first_name = ?, last_name = ?, phone = ?, address = ?, city = ?, state = ?, pincode = ? WHERE id = ?').run(firstName || '', lastName || '', phone || '', address || '', city || '', state || '', pincode || '', req.user.id);
+
         res.json({ success: true, message: 'Profile updated successfully' });
     } catch (error) {
         console.error('Profile update error:', error);
@@ -725,23 +657,21 @@ function adminAuth(req, res, next) {
     next();
 }
 
-// Get all data for admin
-app.get('/api/admin/all', adminAuth, async (req, res) => {
+app.get('/api/admin/all', adminAuth, (req, res) => {
     try {
-        const [orders] = await pool.query(`
-            SELECT o.*, u.email as user_email, u.phone as user_phone, u.first_name, u.last_name 
-            FROM orders o 
-            LEFT JOIN users u ON o.user_id = u.id 
+        const orders = db.prepare(`
+            SELECT o.*, u.email as user_email, u.phone as user_phone, u.first_name, u.last_name
+            FROM orders o
+            LEFT JOIN users u ON o.user_id = u.id
             ORDER BY o.created_at DESC
-        `);
-        
-        const [users] = await pool.query('SELECT * FROM users ORDER BY created_at DESC');
-        
+        `).all();
+
+        const users = db.prepare('SELECT * FROM users ORDER BY created_at DESC').all();
+
         for (const order of orders) {
-            const [items] = await pool.query('SELECT * FROM order_items WHERE order_id = ?', [order.id]);
-            order.items = items;
+            order.items = db.prepare('SELECT * FROM order_items WHERE order_id = ?').all(order.id);
         }
-        
+
         res.json({ orders, users });
     } catch (error) {
         console.error('Admin fetch error:', error);
@@ -749,21 +679,17 @@ app.get('/api/admin/all', adminAuth, async (req, res) => {
     }
 });
 
-// Save products (for admin panel)
-app.post('/api/admin/products/save', adminAuth, async (req, res) => {
+app.post('/api/admin/products/save', adminAuth, (req, res) => {
     try {
         const { products } = req.body;
-        
+
         if (!products) {
             return res.status(400).json({ error: 'No products data provided', success: false });
         }
-        
-        const fs = require('fs');
-        const path = require('path');
-        
+
         const productsPath = path.join(__dirname, 'data', 'products.json');
         fs.writeFileSync(productsPath, JSON.stringify(products, null, 2));
-        
+
         console.log('Products saved successfully');
         res.json({ success: true });
     } catch (error) {
@@ -772,7 +698,6 @@ app.post('/api/admin/products/save', adminAuth, async (req, res) => {
     }
 });
 
-// Upload product images
 const storage = multer.diskStorage({
     destination: (req, file, cb) => {
         const category = req.body.category || 'mobiles';
@@ -790,19 +715,19 @@ const storage = multer.diskStorage({
 
 const upload = multer({ storage, limits: { fileSize: 5 * 1024 * 1024 } });
 
-app.post('/api/admin/products/upload', adminAuth, upload.array('images', 5), async (req, res) => {
+app.post('/api/admin/products/upload', adminAuth, upload.array('images', 5), (req, res) => {
     try {
         const files = req.files;
         if (!files || files.length === 0) {
             return res.status(400).json({ error: 'No files uploaded', success: false });
         }
-        
+
         const category = req.body.category || 'mobiles';
         const fileNames = files.map(f => f.filename);
-        
+
         console.log(`Uploaded ${files.length} images to images/${category}/`);
-        res.json({ 
-            success: true, 
+        res.json({
+            success: true,
             files: fileNames,
             message: `Uploaded ${files.length} image(s) to images/${category}/`
         });
@@ -812,34 +737,28 @@ app.post('/api/admin/products/upload', adminAuth, upload.array('images', 5), asy
     }
 });
 
-// Delete product
-app.delete('/api/admin/products/delete', adminAuth, async (req, res) => {
+app.delete('/api/admin/products/delete', adminAuth, (req, res) => {
     try {
         const { category, id } = req.query;
-        
-        const fs = require('fs');
-        const path = require('path');
-        
+
         const productsPath = path.join(__dirname, 'data', 'products.json');
         if (!fs.existsSync(productsPath)) {
             return res.status(404).json({ error: 'Products file not found' });
         }
-        
+
         let products = JSON.parse(fs.readFileSync(productsPath, 'utf8'));
-        
+
         if (!products[category]) {
             return res.status(404).json({ error: 'Category not found' });
         }
-        
-        // Find and remove product
+
         const productIndex = products[category].findIndex(p => p.id == id);
         if (productIndex === -1) {
             return res.status(404).json({ error: 'Product not found' });
         }
-        
+
         const product = products[category][productIndex];
-        
-        // Delete image files
+
         if (product.images) {
             product.images.forEach(img => {
                 const imgPath = path.join(__dirname, 'images', category, img);
@@ -848,13 +767,11 @@ app.delete('/api/admin/products/delete', adminAuth, async (req, res) => {
                 }
             });
         }
-        
-        // Remove from array
+
         products[category].splice(productIndex, 1);
-        
-        // Save products.json
+
         fs.writeFileSync(productsPath, JSON.stringify(products, null, 2));
-        
+
         res.json({ success: true, message: 'Product deleted!' });
     } catch (error) {
         console.error('Delete product error:', error);
@@ -862,34 +779,31 @@ app.delete('/api/admin/products/delete', adminAuth, async (req, res) => {
     }
 });
 
-// Update order status from admin
-app.post('/api/admin/update-order', adminAuth, async (req, res) => {
+app.post('/api/admin/update-order', adminAuth, (req, res) => {
     try {
         const { orderId, status } = req.body;
-        
-        const [orders] = await pool.query('SELECT * FROM orders WHERE order_id = ?', [orderId]);
-        if (orders.length === 0) {
+
+        const order = db.prepare('SELECT * FROM orders WHERE order_id = ?').get(orderId);
+        if (!order) {
             return res.status(404).json({ error: 'Order not found' });
         }
-        
-        const order = orders[0];
+
         let paymentStatus = order.payment_status;
-        
         if (status === 'cancelled') {
             paymentStatus = 'refunded';
         }
-        
-        await pool.query('UPDATE orders SET order_status = ?, payment_status = ? WHERE order_id = ?', [status, paymentStatus, orderId]);
-        
+
+        db.prepare('UPDATE orders SET order_status = ?, payment_status = ? WHERE order_id = ?').run(status, paymentStatus, orderId);
+
         const statusMessages = {
             'confirmed': 'Order confirmed',
             'shipped': 'Order shipped',
             'delivered': 'Order delivered',
             'cancelled': 'Order cancelled'
         };
-        
-        await pool.query('INSERT INTO order_tracking (order_id, status, description) VALUES (?, ?, ?)', [order.id, status, statusMessages[status] || 'Status updated']);
-        
+
+        db.prepare('INSERT INTO order_tracking (order_id, status, description) VALUES (?, ?, ?)').run(order.id, status, statusMessages[status] || 'Status updated');
+
         res.json({ success: true, message: statusMessages[status] + ' successfully' });
     } catch (error) {
         res.status(500).json({ error: 'Failed to update order' });
@@ -908,13 +822,12 @@ app.get('/profile', (req, res) => res.sendFile(__dirname + '/profile.html'));
 app.get('/admin', (req, res) => res.sendFile(__dirname + '/admin.html'));
 
 // Start server
-initDatabase().then(success => {
-    if (success) {
-        app.listen(PORT, () => {
-            console.log('\n🚀 Tech Shop running at http://localhost:' + PORT + '\n');
-        });
-    } else {
-        console.log('❌ Failed to initialize database. Please check MySQL credentials.');
-        process.exit(1);
-    }
-});
+try {
+    initDatabase();
+    app.listen(PORT, () => {
+        console.log('\n🚀 Tech Shop running at http://localhost:' + PORT + '\n');
+    });
+} catch (error) {
+    console.error('❌ Failed to initialize database:', error.message);
+    process.exit(1);
+}
