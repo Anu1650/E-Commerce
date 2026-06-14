@@ -18,8 +18,8 @@ const JWT_SECRET = process.env.JWT_SECRET || 'techshop_secret_key_2024';
 const emailTransporter = nodemailer.createTransport({
     service: 'gmail',
     auth: {
-        user: 'aniketigade@gmail.com',
-        pass: 'uzyfmzytucafqnaa'
+        user: process.env.EMAIL_USER || 'aniketigade@gmail.com',
+        pass: process.env.EMAIL_PASS || 'uzyfmzytucafqnaa'
     }
 });
 
@@ -97,12 +97,13 @@ app.use(express.static('.'));
 
 // MySQL Connection
 const pool = mysql.createPool({
-    host: 'localhost',
-    user: 'root',
-    password: 'Aniket@2006',
-    database: 'techshop',
+    host: process.env.DB_HOST || 'localhost',
+    user: process.env.DB_USER || 'root',
+    password: process.env.DB_PASSWORD || 'Aniket@2006',
+    database: process.env.DB_NAME || 'techshop',
     waitForConnections: true,
-    connectionLimit: 10
+    connectionLimit: 10,
+    ssl: process.env.DB_SSL === 'true' ? { rejectUnauthorized: false } : undefined
 });
 
 console.log('🔄 Starting Tech Shop Server...');
@@ -111,9 +112,9 @@ console.log('🔄 Starting Tech Shop Server...');
 async function initDatabase() {
     try {
         const conn = await mysql.createConnection({
-            host: 'localhost',
-            user: 'root',
-            password: 'Aniket@2006'
+            host: process.env.DB_HOST || 'localhost',
+            user: process.env.DB_USER || 'root',
+            password: process.env.DB_PASSWORD || 'Aniket@2006'
         });
         await conn.query('CREATE DATABASE IF NOT EXISTS techshop');
         await conn.end();
